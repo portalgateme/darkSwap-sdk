@@ -1,0 +1,50 @@
+{
+  "name": "darkswap-sdk",
+  "version": "0.1.0",
+  "description": "DarkSwap SDK for browser and Node.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "rollup -c --bundleConfigAsCjs",
+    "dev": "rollup -c --bundleConfigAsCjs -w",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "darkswap",
+    "sdk",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.27.4",
+    "@babel/preset-env": "^7.27.2",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.24",
+    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/parser": "^8.33.0",
+    "babel-jest": "^30.0.0-beta.3",
+    "eslint": "^9.27.0",
+    "prettier": "^3.5.3",
+    "rollup": "^4.41.1",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  },
+  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72",
+  "dependencies": {
+    "@aztec/bb.js": "^0.87.5",
+    "@aztec/foundation": "^0.87.5",
+    "@noir-lang/noir_js": "^1.0.0-beta.6",
+    "@noir-lang/noir_wasm": "^1.0.0-beta.6",
+    "@noir-lang/types": "^1.0.0-beta.6",
+    "ethers": "^6.14.3"
+  }
+}
