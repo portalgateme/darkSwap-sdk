@@ -1,7 +1,8 @@
-import { Fr, UltraHonkBackend } from "@aztec/bb.js";
+import { UltraHonkBackend } from "@aztec/bb.js";
 import { Schnorr } from "@aztec/foundation/crypto";
 import { Noir } from "@noir-lang/noir_js";
 import { hexlify } from "ethers";
+import { Fr, GrumpkinScalar } from "@aztec/foundation/fields";
 
 export async function generateProof(
     circuit: any,
@@ -26,7 +27,7 @@ export async function generateProof(
 }
 
 
-export async function signMessage(message: string, fuzkPriKey: Fr) {
+export async function signMessage(message: string, fuzkPriKey: GrumpkinScalar) {
     const schnorr = new Schnorr();
     const signature = await schnorr.constructSignature(Buffer.from(message, "hex").reverse(), fuzkPriKey);
     return signature.toBuffer();

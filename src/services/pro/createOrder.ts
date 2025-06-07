@@ -1,0 +1,157 @@
+import { ethers } from 'ethers';
+import DarkpoolSwapAssetManagerAbi from '../../abis/DarkPoolSwapAssetManager.json';
+import { FEE_RATIO } from '../../config/config';
+import { DarkSwap } from '../../darkSwap';
+import { DarkSwapError } from '../../entities';
+import { generateKeyPair } from '../../proof/keyService';
+import { createNote, createOrderNoteExt } from '../../proof/noteService';
+import { generateProCreateOrderProof, ProCreateOrderProofResult } from '../../proof/pro/orders/createOrderProof';
+import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { BaseContext, BaseContractService } from '../BaseService';
+import { getMerklePathAndRoot } from '../merkletree';
+
+class ProCreateOrderContext extends BaseContext {
+  private _orderNote?: DarkSwapOrderNote;
+  private _oldBalance?: DarkSwapNote;
+  private _newBalance?: DarkSwapNote;
+  private _swapInNote?: DarkSwapNote;
+  private _proof?: ProCreateOrderProofResult;
+  private _feeAmount?: bigint;
+  private _swapMessage?: DarkSwapMessage;
+
+  constructor(signature: string) {
+    super(signature);
+  }
+
+  set orderNote(orderNote: DarkSwapOrderNote | undefined) {
+    this._orderNote = orderNote;
+  }
+
+  get orderNote(): DarkSwapOrderNote | undefined {
+    return this._orderNote;
+  }
+
+  set swapInNote(swapInNote: DarkSwapNote | undefined) {
+    this._swapInNote = swapInNote;
+  }
+
+  get swapInNote(): DarkSwapNote | undefined {
+    return this._swapInNote;
+  }
+
+  set oldBalance(oldBalance: DarkSwapNote | undefined) {
+    this._oldBalance = oldBalance;
+  }
+
+  get oldBalance(): DarkSwapNote | undefined {
+    return this._oldBalance;
+  }
+
+  set newBalance(newBalance: DarkSwapNote | undefined) {
+    this._newBalance = newBalance;
+  }
+
+  get newBalance(): DarkSwapNote | undefined {
+    return this._newBalance;
+  }
+
+  set feeAmount(feeAmount: bigint | undefined) {
+    this._feeAmount = feeAmount;
+  }
+
+  get feeAmount(): bigint | undefined {
+    return this._feeAmount;
+  }
+
+  set proof(proof: ProCreateOrderProofResult | undefined) {
+    this._proof = proof;
+  }
+
+  get proof(): ProCreateOrderProofResult | undefined {
+    return this._proof;
+  }
+
+  set swapMessage(swapMessage: DarkSwapMessage | undefined) {
+    this._swapMessage = swapMessage;
+  }
+
+  get swapMessage(): DarkSwapMessage | undefined {
+    return this._swapMessage;
+  }
+}
+
+export class ProCreateOrderService extends BaseContractService {
+  constructor(_darkSwap: DarkSwap) {
+    super(_darkSwap);
+  }
+
+  public async prepare(
+    address: string,
+    depositAsset: string,
+    depositAmount: bigint,
+    swapInAsset: string,
+    swapInAmount: bigint,
+    balanceNote: DarkSwapNote,
+    signature: string
+  ): Promise<{ context: ProCreateOrderContext; orderNote: DarkSwapOrderNote, swapInNote: DarkSwapNote, newBalance: DarkSwapNote }> {
+    const [pubKey, privKey] = await generateKeyPair(signature);
+    const orderNote = createOrderNoteExt(address, depositAsset, depositAmount, FEE_RATIO, pubKey);
+    const newBalance = createNote(address, depositAsset, balanceNote.amount - depositAmount, pubKey);
+    const swapInNote = createNote(address, swapInAsset, swapInAmount, pubKey);
+    const context = new ProCreateOrderContext(signature);
+    context.orderNote = orderNote;
+    context.swapInNote = swapInNote;
+    context.oldBalance = balanceNote;
+    context.newBalance = newBalance;
+    context.address = address;
+    return { context, orderNote, swapInNote, newBalance };
+  }
+
+  private async generateProof(context: ProCreateOrderContext): Promise<void> {
+    if (!context
+      || !context.orderNote
+      || !context.swapInNote
+      || !context.oldBalance
+      || !context.newBalance
+      || !context.address
+      || !context.signature) {
+      throw new DarkSwapError('Invalid context');
+    }
+
+    const { root, index, path } = await getMerklePathAndRoot(context.oldBalance.note, this._darkSwap);
+
+    const proof = await generateProCreateOrderProof({
+      merkleRoot: root,
+      merkleIndex: index,
+      merklePath: path,
+      orderNote: context.orderNote,
+      oldBalanceNote: context.oldBalance,
+      newBalanceNote: context.newBalance,
+      inNote: context.swapInNote,
+      address: context.address,
+      signedMessage: context.signature,
+    });
+    context.merkleRoot = root;
+    context.proof = proof;
+  }
+
+  public async execute(context: ProCreateOrderContext): Promise<string> {
+    await this.generateProof(context);
+    if (!context || !context.orderNote || !context.swapInNote || !context.oldBalance || !context.newBalance || !context.proof) {
+      throw new DarkSwapError('Invalid context');
+    }
+
+    const contract = new ethers.Contract(
+      this._darkSwap.contracts.darkpoolSwapAssetManager,
+      DarkpoolSwapAssetManagerAbi.abi,
+      this._darkSwap.signer
+    );
+    const tx = await contract.proCreateOrder(
+      context.proof.oldBalanceNullifier,
+      context.proof.newBalanceFooter,
+      context.proof.orderNoteFooter,
+      context.proof.proof
+    );
+    return tx.hash;
+  }
+}

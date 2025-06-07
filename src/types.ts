@@ -1,11 +1,38 @@
+import { Fr } from "@aztec/foundation/fields";
+
 export type Hex = `0x${string}`;
 
 export enum PROOF_DOMAIN {
     DEPOSIT = 10001,
+    WITHDRAW = 10002,
+    RETAIL_CREATE_ORDER = 10003,
+    PRO_CREATE_ORDER = 10004,
+    PRO_SWAP = 10005,
+    PRO_CANCEL_ORDER = 10006,
+    RETAIL_CANCEL_ORDER = 10007,
+    JOIN = 10008,
+    TRIPLE_JOIN = 10009,
+    RETAIL_SWAP = 10010
+}
+
+export const EMPTY_NULLIFIER = 0n;
+export const EMPTY_FOOTER = 0n;
+
+export const FEE_RATIO_PRECISION = 1000000n;
+
+export class DarkSwapProofError extends Error {
+    constructor(message: string) {
+        super(message)
+        this.name = 'DarkSwapProofError'
+        Object.setPrototypeOf(this, DarkSwapProofError.prototype)
+    }
 }
 
 export type DarkSwapNote = CreateNoteParam & {
     note: bigint,
+}
+export type DarkSwapOrderNote = DarkSwapNote & {
+    feeRatio: bigint,
 }
 
 export type CreateNoteParam = {
@@ -16,13 +43,26 @@ export type CreateNoteParam = {
 
 export type DarkSwapNoteExt = DarkSwapNote & { footer: bigint }
 
-export type PartialDarkSwapNote = {
-    rho: bigint,
-    footer: bigint,
-    asset: string,
-}
 
 export type BaseProofParam = {
     address: string,
     signedMessage: string,
+}
+
+export type BaseProofResult = {
+    proof: string,
+    verifyInputs: string[],
+}
+
+export type BaseProofInput = {
+    address: string,
+    pub_key: [string, string],
+    signature: any
+}
+
+export type DarkSwapMessage = {
+    orderNote: DarkSwapOrderNote,
+    inNote: DarkSwapNote,
+    publicKey: [Fr, Fr],
+    signature: any,
 }

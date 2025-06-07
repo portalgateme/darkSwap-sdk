@@ -1,0 +1,824 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "DarkPoolSwapAssetManager",
+  "sourceName": "contracts/core/DarkPoolSwapAssetManager.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "assetPoolERC20",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "assetPoolERC721",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "assetPoolETH",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "verifierHub",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "relayerHub",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "feeManager",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "comlianceManager",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "merkleTreeOperator",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "mimc254",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "initialOwner",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        }
+      ],
+      "name": "AddressEmptyCode",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "AddressInsufficientBalance",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FailedInnerCall",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidNoteParameters",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidServiceFee",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MerkleRootNotAllowed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NoteAlreadyCreated",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NoteFooterDuplicated",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NoteFooterUsed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NullifierLocked",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NullifierUsed",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "RelayerMismatch",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "RelayerNotRegistered",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "SafeERC20FailedOperation",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ZeroAddress",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "nullifier",
+          "type": "bytes32"
+        }
+      ],
+      "name": "DarkPoolCancelOrder",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "nullifier",
+          "type": "bytes32"
+        }
+      ],
+      "name": "DarkPoolCreateOrder",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceOutNullifierIn",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "botOutnullifierIn",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceInNote",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "bobInNote",
+          "type": "bytes32"
+        }
+      ],
+      "name": "DarkPoolSwap",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "ASSET_ETH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "ETH_ADDRESS",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "P",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_merkleRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_nullifier",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "cancelOrder",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAssetPoolERC20",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAssetPoolERC721",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAssetPoolETH",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getComplianceManager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getFeeManager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMerkleTreeOperator",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMimc254",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getRelayerHub",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getVerifierHub",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_merkleRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_nullifier",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "makerCreateOrder",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "merkleRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceChangeNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceChangeNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "bobFeeAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "bobFeeAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobInNoteFooter",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct DarkPoolSwapAssetManager.MakerSwapArgs",
+          "name": "_args",
+          "type": "tuple"
+        }
+      ],
+      "name": "makerSwap",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "asset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "releaseToAsssetPool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "assetPoolERC20",
+          "type": "address"
+        }
+      ],
+      "name": "setAssetPoolERC20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "assetPoolERC721",
+          "type": "address"
+        }
+      ],
+      "name": "setAssetPoolERC721",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "assetPoolETH",
+          "type": "address"
+        }
+      ],
+      "name": "setAssetPoolETH",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "complianceManager",
+          "type": "address"
+        }
+      ],
+      "name": "setComplianceManager",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "feeManager",
+          "type": "address"
+        }
+      ],
+      "name": "setFeeManager",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "asset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "fee",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct DarkPoolSwapAssetManager.ServiceFee[]",
+          "name": "minServiceFees",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "setMinServiceFees",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "relayerHub",
+          "type": "address"
+        }
+      ],
+      "name": "setRelayerHub",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "verifierHub",
+          "type": "address"
+        }
+      ],
+      "name": "setVerifierHub",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_merkleRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_nullifier",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "_feeAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_feeAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_inNote",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_inNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "takerCreateOrder",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "merkleRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "aliceFeeAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "aliceFeeAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "bobFeeAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "bobFeeAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobInNoteFooter",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct DarkPoolSwapAssetManager.TakerSwapArgs",
+          "name": "_args",
+          "type": "tuple"
+        }
+      ],
+      "name": "takerSwap",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    }
+  ],
+  "bytecode": "",
+  "deployedBytecode": "",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
