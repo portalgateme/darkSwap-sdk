@@ -8,7 +8,7 @@ import { generateProof, signMessage } from "../baseProofService";
 import { generateKeyPair } from "../keyService";
 import { calcNullifier, getNoteFooter } from "../noteService";
 import retailCreateOrderCircuit from "../../circuits/retail/dark_swap_retail_deposit_create_order_compiled_circuit.json";
-import { Fq, Fr } from "@aztec/foundation/fields";
+import { Fr } from "@aztec/foundation/fields";
 
 
 type RetailCreateOrderProofInput = BaseProofInput & {
@@ -36,6 +36,7 @@ type RetailCreateOrderProofInput = BaseProofInput & {
 export type RetailCreateOrderProofParam = BaseProofParam & {
     depositNote: DarkSwapOrderNote,
     swapInNote: DarkSwapNote,
+    feeAmount: bigint
 }
 
 export type RetailCreateOrderProofResult = BaseProofResult & {
@@ -49,7 +50,7 @@ export async function generateRetailSwapMessage(
     orderNote: DarkSwapOrderNote,
     swapInNote: DarkSwapNote,
     pubKey: [Fr, Fr],
-    privKey: Fq
+    privKey: Fr
 ): Promise<DarkSwapMessage> {
 
     const addressMod = encodeAddress(address);
@@ -57,7 +58,7 @@ export async function generateRetailSwapMessage(
     const message = bn_to_hex(mimc_bn254([
         BigInt(PROOF_DOMAIN.RETAIL_CREATE_ORDER),
         addressMod,
-        orderNoteNullifier,
+        orderNote.note,
         orderNote.feeRatio,
         swapInNote.note,
     ]));
@@ -84,7 +85,7 @@ export async function generateRetailCreateOrderProof(param: RetailCreateOrderPro
 
     const depositNullifier = calcNullifier(param.depositNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
     const depositFooter = getNoteFooter(param.depositNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
-    const feeAmount = param.swapInNote.amount * param.depositNote.feeRatio / FEE_RATIO_PRECISION;
+    const inAmount = param.feeAmount + param.swapInNote.amount;
 
     const swapInNoteFooter = getNoteFooter(param.swapInNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
 
@@ -92,7 +93,7 @@ export async function generateRetailCreateOrderProof(param: RetailCreateOrderPro
     const message = bn_to_hex(mimc_bn254([
         BigInt(PROOF_DOMAIN.RETAIL_CREATE_ORDER),
         addressMod,
-        depositNullifier,
+        param.depositNote.note,
         param.depositNote.feeRatio,
         param.swapInNote.note,
     ]));
@@ -108,13 +109,13 @@ export async function generateRetailCreateOrderProof(param: RetailCreateOrderPro
         out_asset: bn_to_0xhex(encodeAddress(param.depositNote.asset)),
         out_amount: bn_to_0xhex(param.depositNote.amount),
         in_asset: bn_to_0xhex(encodeAddress(param.swapInNote.asset)),
-        in_amount: bn_to_0xhex(param.swapInNote.amount),
+        in_amount: bn_to_0xhex(inAmount),
 
         in_note: bn_to_0xhex(param.swapInNote.note),
         in_note_footer: bn_to_0xhex(swapInNoteFooter),
         in_rho: bn_to_0xhex(param.swapInNote.rho),
         fee_ratio: bn_to_0xhex(param.depositNote.feeRatio),
-        fee_amount: bn_to_0xhex(feeAmount),
+        fee_amount: bn_to_0xhex(param.feeAmount),
 
         pub_key: [fuzkPubKeyX.toString(), fuzkPubKeyY.toString()],
         signature: uint8ArrayToNumberArray(signature),

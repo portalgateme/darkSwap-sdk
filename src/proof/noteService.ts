@@ -37,14 +37,15 @@ export function createNote(
     const rho = generateRho();
     const footer = getNoteFooter(rho, fuzkPubKey)
 
+    const addressMod = encodeAddress(address);
     const assetMod = encodeAddress(asset);
-    const note = buildNoteCommitment(
+    const note = mimc_bn254([
         DOMAIN_NOTE,
-        address,
+        addressMod,
         assetMod,
         amount,
         footer
-    );
+    ]);
     return {
         rho,
         note,
@@ -52,17 +53,6 @@ export function createNote(
         amount,
         footer
     };
-}
-
-function buildNoteCommitment(domain: bigint, address: string, asset: bigint, amount: bigint, footer: bigint) {
-    const addressMod = encodeAddress(address);
-    return mimc_bn254([
-        domain,
-        addressMod,
-        asset,
-        amount,
-        footer
-    ]);
 }
 
 export function getNoteFooter(rho: bigint, publicKey: [Fr, Fr]): bigint {
