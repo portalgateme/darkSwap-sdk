@@ -1,15 +1,13 @@
 import { ethers } from 'ethers';
-import DarkpoolSwapAssetManagerAbi from '../../abis/DarkPoolSwapAssetManager.json';
-import { FEE_RATIO } from '../../config/config';
+import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
-import { createNote, createOrderNoteExt } from '../../proof/noteService';
-import { generateProCreateOrderProof, ProCreateOrderProofResult } from '../../proof/pro/orders/createOrderProof';
-import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { createNote } from '../../proof/noteService';
+import { generateProCancelOrderProof, ProCancelOrderProofResult } from '../../proof/pro/orders/cancelOrderProof';
+import { DarkSwapNote, DarkSwapOrderNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { getMerklePathAndRoot } from '../merkletree';
-import { generateProCancelOrderProof, ProCancelOrderProofResult } from '../../proof/pro/orders/cancelOrderProof';
 
 class ProCancelOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -108,8 +106,8 @@ export class ProCancelOrderService extends BaseContractService {
     }
 
     const contract = new ethers.Contract(
-      this._darkSwap.contracts.darkpoolSwapAssetManager,
-      DarkpoolSwapAssetManagerAbi.abi,
+      this._darkSwap.contracts.darkSwapAssetManager,
+      DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
     const tx = await contract.proCancelOrder(

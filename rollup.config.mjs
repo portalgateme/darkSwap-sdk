@@ -1,4 +1,5 @@
 import typescript from 'rollup-plugin-typescript2';
+import json from '@rollup/plugin-json';
 
 const config = {
   input: 'src/index.ts',
@@ -30,6 +31,7 @@ const config = {
     },
   ],
   plugins: [
+    json(),
     typescript({
       tsconfig: './tsconfig.json',
       useTsconfigDeclarationDir: true,

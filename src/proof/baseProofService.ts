@@ -15,7 +15,7 @@ export async function generateProof(
     const noir = new Noir(circuit);
     try {
         const { witness } = await noir.execute(inputs);
-        const proof = await backend.generateProof(witness);
+        const proof = await backend.generateProof(witness, { keccak: true });
         console.log("Proof generated in " + (new Date().getTime() - start_time) + "ms");
 
         return { proof: hexlify(proof.proof), verifyInputs: proof.publicInputs };

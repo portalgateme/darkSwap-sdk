@@ -1,12 +1,12 @@
 import { ethers } from 'ethers';
-import DarkpoolSwapAssetManagerAbi from '../../abis/DarkPoolSwapAssetManager.json';
+import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { FEE_RATIO } from '../../config/config';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote, createOrderNoteExt } from '../../proof/noteService';
 import { generateRetailCreateOrderProof, generateRetailSwapMessage, RetailCreateOrderProofResult } from '../../proof/retail/depositOrderProof';
-import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, FEE_RATIO_PRECISION } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 
 class RetailCreateOrderContext extends BaseContext {
@@ -76,12 +76,12 @@ export class RetailCreateOrderService extends BaseContractService {
   ): Promise<{ context: RetailCreateOrderContext; swapMessage: DarkSwapMessage }> {
     const [pubKey, privKey] = await generateKeyPair(signature);
     const orderNote = createOrderNoteExt(address, depositAsset, depositAmount, FEE_RATIO, pubKey);
-    const swapInNote = createNote(address, swapInAsset, swapInAmount, pubKey);
+    const feeAmount = (swapInAmount * FEE_RATIO) / FEE_RATIO_PRECISION;
+    const realSwapInAmount = swapInAmount - feeAmount
+    const swapInNote = createNote(address, swapInAsset, realSwapInAmount, pubKey);
     const context = new RetailCreateOrderContext(signature);
     context.orderNote = orderNote;
     context.swapInNote = swapInNote;
-
-    const feeAmount = (depositAmount * FEE_RATIO) / 100n;
     context.feeAmount = feeAmount;
 
     const swapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, pubKey, privKey);
@@ -94,6 +94,7 @@ export class RetailCreateOrderService extends BaseContractService {
       || !context.orderNote
       || !context.swapInNote
       || !context.address
+      || !context.feeAmount
       || !context.signature) {
       throw new DarkSwapError('Invalid context');
     }
@@ -103,6 +104,7 @@ export class RetailCreateOrderService extends BaseContractService {
       swapInNote: context.swapInNote,
       address: context.address,
       signedMessage: context.signature,
+      feeAmount: context.feeAmount
     });
     context.proof = proof;
   }
@@ -114,8 +116,8 @@ export class RetailCreateOrderService extends BaseContractService {
     }
 
     const contract = new ethers.Contract(
-      this._darkSwap.contracts.darkpoolSwapAssetManager,
-      DarkpoolSwapAssetManagerAbi.abi,
+      this._darkSwap.contracts.darkSwapAssetManager,
+      DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
     const tx = await contract.takerCreateOrder(

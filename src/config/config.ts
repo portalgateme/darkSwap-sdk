@@ -6,4 +6,4 @@ export const legacyTokenConfig: { [chainId: number]: string[] } = {
 };
 
 
-export const FEE_RATIO = 3n;
+export const FEE_RATIO = 300n;

@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import DarkpoolAssetManagerAbi from '../../abis/DarkpoolAssetManager.json';
+import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import ERC20Abi from '../../abis/IERC20.json';
 import ERC20_USDT from '../../abis/IERC20_USDT.json';
 import { legacyTokenConfig } from '../../config/config';
@@ -12,14 +12,13 @@ import { DarkSwapNote } from '../../types';
 import { MAX_ALLOWANCE } from '../../utils/constants';
 import { hexlify32, isNativeAsset } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
-import { getMerklePathAndRoot } from '../merkletree';
-
-
+import { EMPTY_PATH, getMerklePathAndRoot } from '../merkletree';
 
 export class DepositContext extends BaseContext {
   private _currentBalance?: DarkSwapNote;
   private _newBalance?: DarkSwapNote;
   private _proof?: DepositProofResult;
+  private _depositAmount?: bigint;
 
   constructor(signature: string) {
     super(signature);
@@ -48,6 +47,14 @@ export class DepositContext extends BaseContext {
   get proof(): DepositProofResult | undefined {
     return this._proof;
   }
+
+  set depositAmount(depositAmount: bigint | undefined) {
+    this._depositAmount = depositAmount;
+  }
+
+  get depositAmount(): bigint | undefined {
+    return this._depositAmount;
+  }
 }
 
 export class DepositService extends BaseContractService {
@@ -61,7 +68,7 @@ export class DepositService extends BaseContractService {
     depositAmount: bigint,
     walletAddress: string,
     signature: string,
-  ): Promise<{ context: DepositContext; outNotes: DarkSwapNote[] }> {
+  ): Promise<{ context: DepositContext; newBalanceNote: DarkSwapNote }> {
     const [pubKey, privKey] = await generateKeyPair(signature);
     const newBalanceAmount = depositAmount + currentBalance.amount;
     const newBalance = createNote(walletAddress, depositAsset, newBalanceAmount, pubKey);
@@ -69,7 +76,8 @@ export class DepositService extends BaseContractService {
     context.currentBalance = currentBalance;
     context.newBalance = newBalance;
     context.address = walletAddress;
-    return { context, outNotes: [newBalance] };
+    context.depositAmount = depositAmount;
+    return { context, newBalanceNote: newBalance };
   }
 
   private async generateProof(context: DepositContext): Promise<void> {
@@ -77,7 +85,9 @@ export class DepositService extends BaseContractService {
       throw new DarkSwapError('Invalid context');
     }
 
-    const path = await getMerklePathAndRoot(context.currentBalance.note, this._darkSwap);
+    const path = context.currentBalance.amount === 0n ?
+      EMPTY_PATH :
+      await getMerklePathAndRoot(context.currentBalance.note, this._darkSwap);
     context.merkleRoot = path.root;
 
     const proof = await generateDepositProof({
@@ -95,33 +105,55 @@ export class DepositService extends BaseContractService {
   public async execute(context: DepositContext): Promise<string> {
     await this.generateProof(context);
 
-    if (!context || !context.currentBalance || !context.newBalance || !context.address || !context.signature || !context.proof) {
+    if (!context 
+      || !context.currentBalance 
+      || !context.newBalance 
+      || !context.address 
+      || !context.signature 
+      || !context.proof
+      || !context.depositAmount
+    ) {
       throw new DarkSwapError('Invalid context');
     }
     const signer = this._darkSwap.signer;
     const contract = new ethers.Contract(
-      this._darkSwap.contracts.darkpoolAssetManager,
-      DarkpoolAssetManagerAbi.abi,
+      this._darkSwap.contracts.darkSwapAssetManager,
+      DarkSwapAssetManagerAbi.abi,
       signer
     );
 
     if (!isNativeAsset(context.newBalance.asset)) {
       await this.allowance(context);
-      const tx = await contract.depositERC20(
+      const tx = await contract.deposit(
+        context.merkleRoot,
         context.newBalance.asset,
-        hexlify32(context.newBalance.amount),
+        hexlify32(context.depositAmount),
+        context.proof.oldBalanceNullifier,
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
         context.proof.proof
       );
+      await tx.wait();
       return tx.hash;
     } else {
-      const tx = await contract.depositETH(
+      console.log(context.merkleRoot,
+        context.newBalance.asset,
+        hexlify32(context.depositAmount),
+        context.proof.oldBalanceNullifier,
+        hexlify32(context.newBalance.note),
+        context.proof.newBalanceFooter,
+        context.proof.proof);
+      const tx = await contract.deposit(
+        context.merkleRoot,
+        context.newBalance.asset,
+        hexlify32(context.depositAmount),
+        context.proof.oldBalanceNullifier,
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
         context.proof.proof,
-        { value: context.newBalance.amount }
+        { value: context.depositAmount }
       );
+      await tx.wait();
       return tx.hash;
     }
   }
@@ -134,14 +166,14 @@ export class DepositService extends BaseContractService {
     const allowanceContract = new ethers.Contract(context.newBalance.asset, ERC20Abi.abi, this._darkSwap);
     const allowance = await allowanceContract.allowance(
       signer.getAddress(),
-      this._darkSwap.contracts.darkpoolAssetManager
+      this._darkSwap.contracts.darkSwapAssetManager
     );
     if (BigInt(allowance) < context.newBalance.amount) {
       const isLegacy =
         legacyTokenConfig.hasOwnProperty(this._darkSwap.chainId) &&
         legacyTokenConfig[this._darkSwap.chainId].includes(context.newBalance.asset.toLowerCase());
       const contract = new ethers.Contract(context.newBalance.asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
-      const tx = await contract.approve(this._darkSwap.contracts.darkpoolAssetManager, hexlify32(MAX_ALLOWANCE));
+      const tx = await contract.approve(this._darkSwap.contracts.darkSwapAssetManager, hexlify32(MAX_ALLOWANCE));
       await tx.wait();
     }
   }

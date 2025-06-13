@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import DarkpoolAssetManagerAbi from '../../abis/DarkpoolAssetManager.json';
 import { generateJoinProof, JoinProofResult } from '../../proof/basic/joinProof';
 import { DarkSwapNote } from '../../types';
 import { hexlify32, isAddressEquals } from '../../utils/util';
@@ -8,7 +7,8 @@ import { multiGetMerklePathAndRoot } from '../merkletree';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
-import { createNote } from '../../proof/noteService';
+import { createNote } from '../../proof/noteService'; 
+import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 
 class JoinContext extends BaseContext {
   private _inNote1?: DarkSwapNote;
@@ -115,8 +115,8 @@ export class JoinService extends BaseContractService {
     }
 
     const contract = new ethers.Contract(
-      this._darkSwap.contracts.darkpoolAssetManager,
-      DarkpoolAssetManagerAbi.abi,
+      this._darkSwap.contracts.darkSwapAssetManager,
+      DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
     const tx = await contract.join(

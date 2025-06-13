@@ -3,11 +3,18 @@ import MerkleAbi from '../abis/MerkleTreeOperator.json';
 import { hexlify32 } from '../utils/util';
 import { DarkSwap } from '../darkSwap';
 
+
 export interface MerklePath {
   noteCommitment: bigint;
   path: string[];
   index: number[];
   root: string;
+}
+
+export const EMPTY_PATH = {
+  path: Array(32).fill('0x0000000000000000000000000000000000000000000000000000000000000000'),
+  index: Array(32).fill(0),
+  root: '0x0000000000000000000000000000000000000000000000000000000000000000'
 }
 
 function getContract(address: string, darkSwap: DarkSwap) {

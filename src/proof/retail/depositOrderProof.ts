@@ -7,8 +7,8 @@ import { uint8ArrayToNumberArray } from "../../utils/proofUtils";
 import { generateProof, signMessage } from "../baseProofService";
 import { generateKeyPair } from "../keyService";
 import { calcNullifier, getNoteFooter } from "../noteService";
-import retailCreateOrderCircuit from "../../circuits/retail/dark_swap_retail_deposit_create_order_compiled_circuit.json";
 import { Fr } from "@aztec/foundation/fields";
+import { fs } from "fs";
 
 
 type RetailCreateOrderProofInput = BaseProofInput & {
@@ -120,6 +120,7 @@ export async function generateRetailCreateOrderProof(param: RetailCreateOrderPro
         pub_key: [fuzkPubKeyX.toString(), fuzkPubKeyY.toString()],
         signature: uint8ArrayToNumberArray(signature),
     };
+    const retailCreateOrderCircuit = fs.readFileSync("../../circuits/retail/dark_swap_retail_deposit_create_order_compiled_circuit.json", "utf8");
     const proof = await generateProof(retailCreateOrderCircuit, inputs);
     return {
         ...proof,

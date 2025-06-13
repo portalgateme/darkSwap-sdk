@@ -1,5 +1,4 @@
 import { DarkSwap } from '../darkSwap';
-import { DarkSwapNote } from '../types';
 
 export class BaseContext {
   private _address?: string;

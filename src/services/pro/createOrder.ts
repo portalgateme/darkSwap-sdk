@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import DarkpoolSwapAssetManagerAbi from '../../abis/DarkPoolSwapAssetManager.json';
+import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { FEE_RATIO } from '../../config/config';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
@@ -142,8 +142,8 @@ export class ProCreateOrderService extends BaseContractService {
     }
 
     const contract = new ethers.Contract(
-      this._darkSwap.contracts.darkpoolSwapAssetManager,
-      DarkpoolSwapAssetManagerAbi.abi,
+      this._darkSwap.contracts.darkSwapAssetManager,
+      DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
     const tx = await contract.proCreateOrder(

@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import DarkpoolAssetManagerAbi from '../../abis/DarkpoolAssetManager.json';
+import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateTripleJoinProof, TripleJoinProofResult } from '../../proof/basic/tripleJoinProof';
@@ -141,8 +141,8 @@ export class TripleJoinService extends BaseContractService {
     }
 
     const contract = new ethers.Contract(
-      this._darkSwap.contracts.darkpoolAssetManager,
-      DarkpoolAssetManagerAbi.abi,
+      this._darkSwap.contracts.darkSwapAssetManager,
+      DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
     const tx = await contract.tripleJoin(
