@@ -1,5 +1,5 @@
 {
-  "name": "darkswap-sdk",
+  "name": "@thesingularitynetwork/darkswap-sdk",
   "version": "0.1.0",
   "description": "DarkSwap SDK for browser and Node.js",
   "type": "module",
@@ -41,11 +41,11 @@
   },
   "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72",
   "dependencies": {
-    "@aztec/bb.js": "^0.87.5",
-    "@aztec/foundation": "^0.87.5",
-    "@noir-lang/noir_js": "^1.0.0-beta.6",
-    "@noir-lang/noir_wasm": "^1.0.0-beta.6",
-    "@noir-lang/types": "^1.0.0-beta.6",
+    "@aztec/bb.js": "^0.84.0",
+    "@aztec/foundation": "^0.84.0",
+    "@noir-lang/noir_js": "^1.0.0-beta.3",
+    "@noir-lang/noir_wasm": "^1.0.0-beta.3",
+    "@noir-lang/types": "^1.0.0-beta.3",
     "ethers": "^6.14.3"
   }
 }
