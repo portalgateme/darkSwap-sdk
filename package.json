@@ -1,15 +1,18 @@
 {
   "name": "@thesingularitynetwork/darkswap-sdk",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "DarkSwap SDK for browser and Node.js",
   "type": "module",
+  "types": "dist/types/src/index.d.ts",
   "main": "dist/index.js",
   "files": [
     "dist",
     "src"
   ],
   "scripts": {
-    "build": "rollup -c --bundleConfigAsCjs",
+    "build:types": "tsc -p tsconfig.json",
+    "build:js": "rollup -c",
+    "build": "yarn build:types && yarn build:js",
     "dev": "rollup -c --bundleConfigAsCjs -w",
     "test": "vitest",
     "lint": "eslint src --ext .ts",

@@ -6,6 +6,7 @@ import { DarkSwap } from '../darkSwap';
 import { DarkSwapNote } from '../types';
 import { Fr } from '@aztec/foundation/fields';
 import { calcNullifier } from '../proof/noteService';
+import { generateKeyPair } from '../proof/keyService';
 
 function getContract(address: string, darkSwap: DarkSwap) {
   const provider = darkSwap.provider;
@@ -34,6 +35,17 @@ export async function getNoteOnChainStatusByPublicKey(
   note: DarkSwapNote,
   publicKey: [Fr, Fr]
 ): Promise<NoteOnChainStatus> {
+  const nullifier = calcNullifier(note.rho, publicKey);
+  const onChainStatus = await getNoteOnChainStatus(darkSwap, hexlify32(note.note), hexlify32(nullifier));
+  return onChainStatus;
+}
+
+export async function getNoteOnChainStatusBySignature(
+  darkSwap: DarkSwap,
+  note: DarkSwapNote,
+  signature: string
+): Promise<NoteOnChainStatus> {
+  const [publicKey] = await generateKeyPair(signature);
   const nullifier = calcNullifier(note.rho, publicKey);
   const onChainStatus = await getNoteOnChainStatus(darkSwap, hexlify32(note.note), hexlify32(nullifier));
   return onChainStatus;
