@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
-import { DEFAULT_FEE_RATIO } from '../../config/config';
+//import { DEFAULT_FEE_RATIO } from '../../config/config';
+import { getFeeRatio } from '../feeRatioService'; 
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
@@ -105,7 +106,8 @@ export class ProCreateOrderService extends BaseContractService {
     signature: string
   ): Promise<{ context: ProCreateOrderContext; orderNote: DarkSwapOrderNoteExt, newBalance: DarkSwapNote }> {
     const [pubKey] = await generateKeyPair(signature);
-    const orderNote = createOrderNoteExt(address, orderAsset, orderAmount, DEFAULT_FEE_RATIO, pubKey);
+    const feeRatio = BigInt(await getFeeRatio(address,this._darkSwap));
+    const orderNote = createOrderNoteExt(address, orderAsset, orderAmount, feeRatio, pubKey);
     const orderNullifier = hexlify32(calcNullifier(orderNote.rho, pubKey));
     const newBalance = createNote(address, orderAsset, balanceNote.amount - orderAmount, pubKey);
     const context = new ProCreateOrderContext(signature);
