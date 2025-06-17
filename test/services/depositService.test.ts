@@ -11,7 +11,7 @@ describe('DepositService', () => {
 
         const balanceNote1 = EMPTY_NOTE;
         const depositAmount = 1000000000000000000n;
-        const depositService = new DepositService(await getDarkSwapForAlice());
+        const depositService = new DepositService(getDarkSwapForAlice());
         const { context, newBalanceNote } = await depositService.prepare(balanceNote1, asset, depositAmount, wallet.address, signature);
         // console.log(newBalanceNote);
         const tx = await depositService.execute(context);

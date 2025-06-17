@@ -1,6 +1,6 @@
 {
   "name": "@thesingularitynetwork/darkswap-sdk",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "DarkSwap SDK for browser and Node.js",
   "type": "module",
   "types": "dist/types/src/index.d.ts",

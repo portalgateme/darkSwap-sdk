@@ -131,7 +131,8 @@ export class DepositService extends BaseContractService {
         context.proof.oldBalanceNullifier,
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
-        context.proof.proof
+        context.proof.proof,
+        { value: 0n }
       );
       await tx.wait();
       return tx.hash;

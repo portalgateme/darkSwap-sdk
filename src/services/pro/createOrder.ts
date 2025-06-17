@@ -87,16 +87,16 @@ export class ProCreateOrderService extends BaseContractService {
 
   public async prepare(
     address: string,
-    depositAsset: string,
-    depositAmount: bigint,
+    orderAsset: string,
+    orderAmount: bigint,
     swapInAsset: string,
     swapInAmount: bigint,
     balanceNote: DarkSwapNote,
     signature: string
   ): Promise<{ context: ProCreateOrderContext; orderNote: DarkSwapOrderNote, swapInNote: DarkSwapNote, newBalance: DarkSwapNote }> {
     const [pubKey, privKey] = await generateKeyPair(signature);
-    const orderNote = createOrderNoteExt(address, depositAsset, depositAmount, FEE_RATIO, pubKey);
-    const newBalance = createNote(address, depositAsset, balanceNote.amount - depositAmount, pubKey);
+    const orderNote = createOrderNoteExt(address, orderAsset, orderAmount, FEE_RATIO, pubKey);
+    const newBalance = createNote(address, orderAsset, balanceNote.amount - orderAmount, pubKey);
     const swapInNote = createNote(address, swapInAsset, swapInAmount, pubKey);
     const context = new ProCreateOrderContext(signature);
     context.orderNote = orderNote;
