@@ -7,7 +7,7 @@ export type ContractConfiguartion = {
   merkleTreeOperator: string;
   darkSwapAssetManager: string;
   darkSwapFeeAssetManager: string;
-  drakpoolSubgraphUrl: string;
+  drakSwapSubgraphUrl: string;
 };
 
 export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
@@ -18,7 +18,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     merkleTreeOperator: '0x0', //FIXME
     darkSwapAssetManager: '0x0', //FIXME
     darkSwapFeeAssetManager: '0x0', //FIXME
-    drakpoolSubgraphUrl:
+    drakSwapSubgraphUrl:
       'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-subgraph/version/v0.0.1/api',
   },
   [ChainId.ARBITRUM_ONE]: {
@@ -28,7 +28,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     merkleTreeOperator: '0x0', //FIXME
     darkSwapAssetManager: '0x0', //FIXME
     darkSwapFeeAssetManager: '0x0', //FIXME
-    drakpoolSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-arb-subgraph/api'
+    drakSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-arb-subgraph/api'
   },
   [ChainId.BASE]: {
     priceOracle: '0xf224a25453D76A41c4427DD1C05369BC9f498444',
@@ -37,7 +37,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     merkleTreeOperator: '0x0', //FIXME
     darkSwapAssetManager: '0x0', //FIXME
     darkSwapFeeAssetManager: '0x0', //FIXME
-    drakpoolSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-base-subgraph/api'
+    drakSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-base-subgraph/api'
   },
   [ChainId.SEPOLIA]: {
     priceOracle: '0x4Fe44a9aC8Ef059Be2dB97f9e3bcA32Ab698C2f2',
@@ -46,7 +46,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     merkleTreeOperator: '0x0', //FIXME
     darkSwapAssetManager: '0x0', //FIXME
     darkSwapFeeAssetManager: '0x0', //FIXME
-    drakpoolSubgraphUrl: ''
+    drakSwapSubgraphUrl: ''
   },
   [ChainId.HARDHAT]: {
     priceOracle: '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8',
@@ -55,7 +55,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
     darkSwapAssetManager: '0xeF66010868Ff77119171628B7eFa0F6179779375',
     darkSwapFeeAssetManager: '0xe3EF345391654121f385679613Cea79A692C2Dd8',
-    drakpoolSubgraphUrl: 'https://34.142.142.240:8080/subgraphs/name/singularity/',
+    drakSwapSubgraphUrl: 'https://34.142.142.240:8080/subgraphs/name/singularity/',
 
   }
 };

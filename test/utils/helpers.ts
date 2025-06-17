@@ -24,7 +24,7 @@ export function getDarkSwapForAlice() {
             merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
             darkSwapAssetManager: '0xeF66010868Ff77119171628B7eFa0F6179779375',
             darkSwapFeeAssetManager: '0xe3EF345391654121f385679613Cea79A692C2Dd8',
-            drakpoolSubgraphUrl: '',
+            drakSwapSubgraphUrl: '',
         }
     );
 }
