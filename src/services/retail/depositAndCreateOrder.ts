@@ -9,6 +9,9 @@ import { generateRetailCreateOrderProof, generateRetailSwapMessage, RetailCreate
 import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, FEE_RATIO_PRECISION } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { getFeeRatio } from '../feeRatioService';
+import { hexlify32 } from '../../utils/util';
+import { bn_to_0xhex } from '../../utils/formatters';
+import { isNativeAsset } from '../../utils/util';
 
 class RetailCreateOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -85,6 +88,7 @@ export class RetailCreateOrderService extends BaseContractService {
     context.orderNote = orderNote;
     context.swapInNote = swapInNote;
     context.feeAmount = feeAmount;
+    context.address = address;
 
     const swapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, pubKey, privKey);
     context.swapMessage = swapMessage;
@@ -122,12 +126,25 @@ export class RetailCreateOrderService extends BaseContractService {
       DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
-    const tx = await contract.takerCreateOrder(
-      context.proof.depositNullifier,
-      context.proof.depositFooter,
-      context.proof.swapInNoteFooter,
-      context.proof.proof
+    let ethAmount = 0n;
+    if (isNativeAsset(context.orderNote.asset)) {
+      ethAmount = context.orderNote.amount;
+    }
+    const tx = await contract.retailDepositCreateOrder(
+      [
+        hexlify32(context.orderNote.note),
+        context.proof.depositFooter,
+        context.orderNote.asset,
+        bn_to_0xhex(context.orderNote.amount),
+        hexlify32(context.swapInNote.note),
+        context.proof.swapInNoteFooter
+      ],
+      context.proof.proof,
+      {
+        value: bn_to_0xhex(ethAmount)
+      }
     );
+    await tx.wait();
     return tx.hash;
   }
 }

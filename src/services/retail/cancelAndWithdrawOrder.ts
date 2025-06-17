@@ -6,6 +6,7 @@ import { generateRetailCancelOrderProof, RetailCancelOrderProofResult } from '..
 import { DarkSwapOrderNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { getMerklePathAndRoot } from '../merkletree';
+import { hexlify32 } from '../../utils/util';
 
 class RetailCancelOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -81,12 +82,14 @@ export class RetailCancelOrderService extends BaseContractService {
       DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
-    const tx = await contract.retailCancelOrder(
-      context.proof.nullifier,
+    const tx = await contract.cancelOrderWithdraw(
+      context.merkleRoot,
       context.orderNote.asset,
-      context.orderNote.amount,
+      hexlify32(context.orderNote.amount),
+      context.proof.nullifier,
       context.proof.proof
     );
+    await tx.wait();
     return tx.hash;
   }
 }
