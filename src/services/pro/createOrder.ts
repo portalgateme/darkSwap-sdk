@@ -1,7 +1,6 @@
 import { ethers } from 'ethers';
 import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
-//import { DEFAULT_FEE_RATIO } from '../../config/config';
-import { getFeeRatio } from '../feeRatioService'; 
+import { getFeeRatio } from '../feeRatioService';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
@@ -106,7 +105,7 @@ export class ProCreateOrderService extends BaseContractService {
     signature: string
   ): Promise<{ context: ProCreateOrderContext; orderNote: DarkSwapOrderNoteExt, newBalance: DarkSwapNote }> {
     const [pubKey] = await generateKeyPair(signature);
-    const feeRatio = BigInt(await getFeeRatio(address,this._darkSwap));
+    const feeRatio = BigInt(await getFeeRatio(address, this._darkSwap));
     const orderNote = createOrderNoteExt(address, orderAsset, orderAmount, feeRatio, pubKey);
     const orderNullifier = hexlify32(calcNullifier(orderNote.rho, pubKey));
     const newBalance = createNote(address, orderAsset, balanceNote.amount - orderAmount, pubKey);
@@ -144,7 +143,7 @@ export class ProCreateOrderService extends BaseContractService {
       inAsset: context.swapInAsset,
       inAmount: context.swapInAmount,
       address: context.address,
-      signedMessage: context.signature,
+      signedMessage: context.signature
     });
     context.merkleRoot = root;
     context.proof = proof;
@@ -168,11 +167,17 @@ export class ProCreateOrderService extends BaseContractService {
       this._darkSwap.signer
     );
     const tx = await contract.proCreateOrder(
-      context.proof.oldBalanceNullifier,
-      context.proof.newBalanceFooter,
-      context.proof.orderNoteFooter,
+      [
+        context.merkleRoot,
+        context.proof.oldBalanceNullifier,
+        hexlify32(context.newBalance.note),
+        context.proof.newBalanceFooter,
+        hexlify32(context.orderNote.note),
+        context.proof.orderNoteFooter
+      ],
       context.proof.proof
     );
+    await tx.wait();
     return tx.hash;
   }
 }

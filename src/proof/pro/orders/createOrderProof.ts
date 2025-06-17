@@ -1,4 +1,4 @@
-import depositCircuit from "../../../circuits/pro/dark_swap_deposit_compiled_circuit.json";
+import proCreateOrderCircuit from "../../../circuits/pro/dark_swap_pro_create_order_compiled_circuit.json";
 import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, EMPTY_FOOTER, FEE_RATIO_PRECISION, PROOF_DOMAIN } from "../../../types";
 import { encodeAddress } from "../../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../../utils/formatters";
@@ -78,8 +78,8 @@ export async function generateProCreateOrderProof(param: ProCreateOrderProofPara
     const [[fuzkPubKeyX, fuzkPubKeyY], fuzkPriKey] = await generateKeyPair(param.signedMessage);
 
     let newBalanceFooter = EMPTY_FOOTER;
-    if (param.oldBalanceNote.amount != 0n) {
-        newBalanceFooter = getNoteFooter(param.oldBalanceNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
+    if (param.newBalanceNote.amount != 0n) {
+        newBalanceFooter = getNoteFooter(param.newBalanceNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
     }
 
     const oldBalanceNullifier = calcNullifier(param.oldBalanceNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
@@ -89,8 +89,11 @@ export async function generateProCreateOrderProof(param: ProCreateOrderProofPara
     const message = bn_to_hex(mimc_bn254([
         BigInt(PROOF_DOMAIN.PRO_CREATE_ORDER),
         oldBalanceNullifier,
-        addressMod,
+        param.orderNote.feeRatio,
         param.newBalanceNote.note,
+        param.orderNote.note,
+        encodeAddress(param.inAsset),
+        param.inAmount
     ]));
     const signature = await signMessage(message, fuzkPriKey);
 
@@ -123,7 +126,7 @@ export async function generateProCreateOrderProof(param: ProCreateOrderProofPara
         pub_key: [fuzkPubKeyX.toString(), fuzkPubKeyY.toString()],
         signature: uint8ArrayToNumberArray(signature),
     };
-    const proof = await generateProof(depositCircuit, inputs);
+    const proof = await generateProof(proCreateOrderCircuit, inputs);
     return {
         ...proof,
         oldBalanceNullifier: inputs.out_nullifier,
