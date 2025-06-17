@@ -47,7 +47,8 @@ export type ProCreateOrderProofParam = BaseProofParam & {
     oldBalanceNote: DarkSwapNote,
     newBalanceNote: DarkSwapNote,
     orderNote: DarkSwapOrderNote,
-    inNote: DarkSwapNote,
+    inAsset: string,
+    inAmount: bigint,
 }
 
 export type ProCreateOrderProofResult = BaseProofResult & {
@@ -63,7 +64,7 @@ export async function generateProCreateOrderProof(param: ProCreateOrderProofPara
 
     if (param.newBalanceNote.amount < 0n
         || param.oldBalanceNote.amount <= 0n
-        || param.inNote.amount <= 0n
+        || param.inAmount <= 0n
         || param.orderNote.amount <= 0n) {
         throw new DarkSwapProofError("Invalid note amount");
     }
@@ -72,7 +73,7 @@ export async function generateProCreateOrderProof(param: ProCreateOrderProofPara
         throw new DarkSwapProofError("Invalid order amount");
     }
 
-    const feeAmount = param.inNote.amount * param.orderNote.feeRatio / FEE_RATIO_PRECISION;
+    const feeAmount = param.inAmount * param.orderNote.feeRatio / FEE_RATIO_PRECISION;
 
     const [[fuzkPubKeyX, fuzkPubKeyY], fuzkPriKey] = await generateKeyPair(param.signedMessage);
 
@@ -116,8 +117,8 @@ export async function generateProCreateOrderProof(param: ProCreateOrderProofPara
         order_note_footer: bn_to_0xhex(orderNoteFooter),
         order_asset: bn_to_0xhex(encodeAddress(param.orderNote.asset)),
         order_amount: bn_to_0xhex(param.orderNote.amount),
-        in_asset: bn_to_0xhex(encodeAddress(param.inNote.asset)),
-        in_amount: bn_to_0xhex(param.inNote.amount),
+        in_asset: bn_to_0xhex(encodeAddress(param.inAsset)),
+        in_amount: bn_to_0xhex(param.inAmount),
 
         pub_key: [fuzkPubKeyX.toString(), fuzkPubKeyY.toString()],
         signature: uint8ArrayToNumberArray(signature),

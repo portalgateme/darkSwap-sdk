@@ -14,7 +14,8 @@ class ProCreateOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
   private _oldBalance?: DarkSwapNote;
   private _newBalance?: DarkSwapNote;
-  private _swapInNote?: DarkSwapNote;
+  private _swapInAsset?: string;
+  private _swapInAmount?: bigint;
   private _proof?: ProCreateOrderProofResult;
   private _feeAmount?: bigint;
   private _swapMessage?: DarkSwapMessage;
@@ -31,12 +32,20 @@ class ProCreateOrderContext extends BaseContext {
     return this._orderNote;
   }
 
-  set swapInNote(swapInNote: DarkSwapNote | undefined) {
-    this._swapInNote = swapInNote;
+  set swapInAsset(swapInAsset: string | undefined) {
+    this._swapInAsset = swapInAsset;
   }
 
-  get swapInNote(): DarkSwapNote | undefined {
-    return this._swapInNote;
+  get swapInAsset(): string | undefined {
+    return this._swapInAsset;
+  }
+
+  set swapInAmount(swapInAmount: bigint | undefined) {
+    this._swapInAmount = swapInAmount;
+  }
+
+  get swapInAmount(): bigint | undefined {
+    return this._swapInAmount;
   }
 
   set oldBalance(oldBalance: DarkSwapNote | undefined) {
@@ -93,24 +102,25 @@ export class ProCreateOrderService extends BaseContractService {
     swapInAmount: bigint,
     balanceNote: DarkSwapNote,
     signature: string
-  ): Promise<{ context: ProCreateOrderContext; orderNote: DarkSwapOrderNote, swapInNote: DarkSwapNote, newBalance: DarkSwapNote }> {
-    const [pubKey, privKey] = await generateKeyPair(signature);
+  ): Promise<{ context: ProCreateOrderContext; orderNote: DarkSwapOrderNote, newBalance: DarkSwapNote }> {
+    const [pubKey] = await generateKeyPair(signature);
     const orderNote = createOrderNoteExt(address, orderAsset, orderAmount, FEE_RATIO, pubKey);
     const newBalance = createNote(address, orderAsset, balanceNote.amount - orderAmount, pubKey);
-    const swapInNote = createNote(address, swapInAsset, swapInAmount, pubKey);
     const context = new ProCreateOrderContext(signature);
     context.orderNote = orderNote;
-    context.swapInNote = swapInNote;
+    context.swapInAsset = swapInAsset;
+    context.swapInAmount = swapInAmount;
     context.oldBalance = balanceNote;
     context.newBalance = newBalance;
     context.address = address;
-    return { context, orderNote, swapInNote, newBalance };
+    return { context, orderNote, newBalance };
   }
 
   private async generateProof(context: ProCreateOrderContext): Promise<void> {
     if (!context
       || !context.orderNote
-      || !context.swapInNote
+      || !context.swapInAsset
+      || !context.swapInAmount
       || !context.oldBalance
       || !context.newBalance
       || !context.address
@@ -127,7 +137,8 @@ export class ProCreateOrderService extends BaseContractService {
       orderNote: context.orderNote,
       oldBalanceNote: context.oldBalance,
       newBalanceNote: context.newBalance,
-      inNote: context.swapInNote,
+      inAsset: context.swapInAsset,
+      inAmount: context.swapInAmount,
       address: context.address,
       signedMessage: context.signature,
     });
@@ -137,7 +148,13 @@ export class ProCreateOrderService extends BaseContractService {
 
   public async execute(context: ProCreateOrderContext): Promise<string> {
     await this.generateProof(context);
-    if (!context || !context.orderNote || !context.swapInNote || !context.oldBalance || !context.newBalance || !context.proof) {
+    if (!context
+      || !context.orderNote
+      || !context.swapInAsset
+      || !context.swapInAmount
+      || !context.oldBalance
+      || !context.newBalance
+      || !context.proof) {
       throw new DarkSwapError('Invalid context');
     }
 
