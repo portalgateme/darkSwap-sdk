@@ -13,6 +13,8 @@ type ProCancelOrderProofInput = BaseProofInput & {
     merkle_root: string,
     merkle_index: number[],
     merkle_path: string[],
+    merkle_index_remaining: number[],
+    merkle_path_remaining: string[],
 
     asset: string,
 
@@ -39,6 +41,8 @@ export type ProCancelOrderProofParam = BaseProofParam & {
     merkleRoot: string,
     merkleIndex: number[],
     merklePath: string[],
+    merkleIndexRemaining: number[],
+    merklePathRemaining: string[],
     orderNote: DarkSwapOrderNote,
     oldBalanceNote: DarkSwapNote,
     newBalanceNote: DarkSwapNote,
@@ -87,6 +91,8 @@ export async function generateProCancelOrderProof(param: ProCancelOrderProofPara
         merkle_root: param.merkleRoot,
         merkle_index: param.merkleIndex,
         merkle_path: param.merklePath.map((x) => bn_to_0xhex(BigInt(x))),
+        merkle_index_remaining: param.merkleIndexRemaining,
+        merkle_path_remaining: param.merklePathRemaining.map((x) => bn_to_0xhex(BigInt(x))),
         order_note: bn_to_0xhex(param.orderNote.note),
         order_rho: bn_to_0xhex(param.orderNote.rho),
         order_nullifier: bn_to_0xhex(orderNullifier),

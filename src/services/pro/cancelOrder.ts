@@ -7,7 +7,7 @@ import { createNote } from '../../proof/noteService';
 import { generateProCancelOrderProof, ProCancelOrderProofResult } from '../../proof/pro/orders/cancelOrderProof';
 import { DarkSwapNote, DarkSwapOrderNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
-import { getMerklePathAndRoot } from '../merkletree';
+import { getMerklePathAndRoot, multiGetMerklePathAndRoot } from '../merkletree';
 
 class ProCancelOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -83,19 +83,22 @@ export class ProCancelOrderService extends BaseContractService {
       throw new DarkSwapError('Invalid context');
     }
 
-    const { root, index, path } = await getMerklePathAndRoot(context.oldBalance.note, this._darkSwap);
+    // const { root, index, path } = await getMerklePathAndRoot(context.oldBalance.note, this._darkSwap);
+    const merklePathAndRoots = await multiGetMerklePathAndRoot([context.oldBalance.note, context.newBalance.note], this._darkSwap);
 
     const proof = await generateProCancelOrderProof({
-      merkleRoot: root,
-      merkleIndex: index,
-      merklePath: path,
+      merkleRoot: merklePathAndRoots[0].root,
+      merkleIndex: merklePathAndRoots[0].index,
+      merklePath: merklePathAndRoots[0].path,
+      merkleIndexRemaining: merklePathAndRoots[1].index,
+      merklePathRemaining: merklePathAndRoots[1].path,
       orderNote: context.orderNote,
       oldBalanceNote: context.oldBalance,
       newBalanceNote: context.newBalance,
       address: context.address,
       signedMessage: context.signature,
     });
-    context.merkleRoot = root;
+    context.merkleRoot = merklePathAndRoots[0].root;
     context.proof = proof;
   }
 

@@ -1,8 +1,8 @@
 import { UltraHonkBackend } from "@aztec/bb.js";
 import { Schnorr } from "@aztec/foundation/crypto";
+import { Fq, Fr } from "@aztec/foundation/fields";
 import { Noir } from "@noir-lang/noir_js";
 import { hexlify } from "ethers";
-import { Fq, Fr, GrumpkinScalar } from "@aztec/foundation/fields";
 
 export async function generateProof(
     circuit: any,
