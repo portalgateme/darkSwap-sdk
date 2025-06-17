@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
-import { FEE_RATIO } from '../../config/config';
+import { DEFAULT_FEE_RATIO } from '../../config/config';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
@@ -75,8 +75,8 @@ export class RetailCreateOrderService extends BaseContractService {
     signature: string
   ): Promise<{ context: RetailCreateOrderContext; swapMessage: DarkSwapMessage }> {
     const [pubKey, privKey] = await generateKeyPair(signature);
-    const orderNote = createOrderNoteExt(address, depositAsset, depositAmount, FEE_RATIO, pubKey);
-    const feeAmount = (swapInAmount * FEE_RATIO) / FEE_RATIO_PRECISION;
+    const orderNote = createOrderNoteExt(address, depositAsset, depositAmount, DEFAULT_FEE_RATIO, pubKey);
+    const feeAmount = (swapInAmount * DEFAULT_FEE_RATIO) / FEE_RATIO_PRECISION;
     const realSwapInAmount = swapInAmount - feeAmount
     const swapInNote = createNote(address, swapInAsset, realSwapInAmount, pubKey);
     const context = new RetailCreateOrderContext(signature);
