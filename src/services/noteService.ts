@@ -68,3 +68,8 @@ export async function isNoteValid(darkSwap: DarkSwap, note: DarkSwapNote, public
   const onChainStatus = await getNoteOnChainStatus(darkSwap, hexlify32(note.note), hexlify32(nullifier));
   return onChainStatus === NoteOnChainStatus.ACTIVE;
 }
+
+export async function getNullifierBySignature(note: DarkSwapNote, signature: string): Promise<string> {
+  const [publicKey] = await generateKeyPair(signature);
+  return hexlify32(calcNullifier(note.rho, publicKey));
+}

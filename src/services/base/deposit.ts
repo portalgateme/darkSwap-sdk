@@ -137,13 +137,6 @@ export class DepositService extends BaseContractService {
       await tx.wait();
       return tx.hash;
     } else {
-      console.log(context.merkleRoot,
-        context.newBalance.asset,
-        hexlify32(context.depositAmount),
-        context.proof.oldBalanceNullifier,
-        hexlify32(context.newBalance.note),
-        context.proof.newBalanceFooter,
-        context.proof.proof);
       const tx = await contract.deposit(
         context.merkleRoot,
         context.newBalance.asset,

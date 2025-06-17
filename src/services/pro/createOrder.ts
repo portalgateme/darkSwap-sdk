@@ -4,11 +4,12 @@ import { FEE_RATIO } from '../../config/config';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
-import { createNote, createOrderNoteExt } from '../../proof/noteService';
+import { calcNullifier, createNote, createOrderNoteExt } from '../../proof/noteService';
 import { generateProCreateOrderProof, ProCreateOrderProofResult } from '../../proof/pro/orders/createOrderProof';
-import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapOrderNoteExt } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { getMerklePathAndRoot } from '../merkletree';
+import { hexlify32 } from '../../utils/util';
 
 class ProCreateOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -102,9 +103,10 @@ export class ProCreateOrderService extends BaseContractService {
     swapInAmount: bigint,
     balanceNote: DarkSwapNote,
     signature: string
-  ): Promise<{ context: ProCreateOrderContext; orderNote: DarkSwapOrderNote, newBalance: DarkSwapNote }> {
+  ): Promise<{ context: ProCreateOrderContext; orderNote: DarkSwapOrderNoteExt, newBalance: DarkSwapNote }> {
     const [pubKey] = await generateKeyPair(signature);
     const orderNote = createOrderNoteExt(address, orderAsset, orderAmount, FEE_RATIO, pubKey);
+    const orderNullifier = hexlify32(calcNullifier(orderNote.rho, pubKey));
     const newBalance = createNote(address, orderAsset, balanceNote.amount - orderAmount, pubKey);
     const context = new ProCreateOrderContext(signature);
     context.orderNote = orderNote;
@@ -113,7 +115,7 @@ export class ProCreateOrderService extends BaseContractService {
     context.oldBalance = balanceNote;
     context.newBalance = newBalance;
     context.address = address;
-    return { context, orderNote, newBalance };
+    return { context, orderNote: { ...orderNote, nullifier: orderNullifier }, newBalance };
   }
 
   private async generateProof(context: ProCreateOrderContext): Promise<void> {

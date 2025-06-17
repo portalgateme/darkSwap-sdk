@@ -35,6 +35,10 @@ export type DarkSwapOrderNote = DarkSwapNote & {
     feeRatio: bigint,
 }
 
+export type DarkSwapOrderNoteExt = DarkSwapOrderNote & {
+    nullifier: string,
+}
+
 export type CreateNoteParam = {
     rho: bigint,
     amount: bigint,
@@ -62,6 +66,7 @@ export type BaseProofInput = {
 
 export type DarkSwapMessage = {
     orderNote: DarkSwapOrderNote,
+    orderNullifier: string,
     inNote: DarkSwapNote,
     publicKey: [Fr, Fr],
     signature: any,

@@ -8,6 +8,7 @@ import { createNote } from '../../proof/noteService';
 import { DarkSwapNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { getMerklePathAndRoot } from '../merkletree';
+import { hexlify32 } from '../../utils/util';
 
 class WithdrawContext extends BaseContext {
   private _currentBalance?: DarkSwapNote;
@@ -62,8 +63,8 @@ export class WithdrawService extends BaseContractService {
     currentBalance: DarkSwapNote,
     withdrawAmount: bigint,
     signature: string
-  ): Promise<{ context: WithdrawContext; outNotes: DarkSwapNote[] }> {
-    const [pubKey, privKey] = await generateKeyPair(signature);
+  ): Promise<{ context: WithdrawContext; newBalanceNote: DarkSwapNote }> {
+    const [pubKey] = await generateKeyPair(signature);
     const newBalanceNote = createNote(address, currentBalance.asset, currentBalance.amount - withdrawAmount, pubKey);
 
     const context = new WithdrawContext(signature);
@@ -71,7 +72,7 @@ export class WithdrawService extends BaseContractService {
     context.newBalance = newBalanceNote;
     context.withdrawAmount = withdrawAmount;
     context.address = address;
-    return { context, outNotes: [newBalanceNote] };
+    return { context, newBalanceNote };
   }
 
   private async generateProof(context: WithdrawContext): Promise<void> {
@@ -109,11 +110,14 @@ export class WithdrawService extends BaseContractService {
 
     const tx = await contract.withdraw(
       context.merkleRoot,
-      context.proof.oldBalanceNullifier,
-      context.proof.newBalanceFooter,
+      context.currentBalance.asset,
       context.withdrawAmount,
+      context.proof.oldBalanceNullifier,
+      hexlify32(context.newBalance.note),
+      context.proof.newBalanceFooter,
       context.proof.proof
     );
+    await tx.wait();
     return tx.hash;
   }
 }

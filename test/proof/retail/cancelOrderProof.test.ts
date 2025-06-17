@@ -33,8 +33,6 @@ describe('RetailCancelOrderProof', () => {
             merklePath,
             signedMessage: signature,
         });
-    
-        console.log(proof);
         
     }, 30000);
 }); 

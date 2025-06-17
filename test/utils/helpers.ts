@@ -1,15 +1,29 @@
 import { ethers } from "ethers";
 import { DarkSwap } from "../../src";
+import IERC20ABI from "../../src/abis/IERC20.json";
+
+const PROVIDER_URL = 'http://localhost:18544';
 
 export function getAliceWallet() {
     const walletPk = 'ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-    return new ethers.Wallet(walletPk, new ethers.JsonRpcProvider('http://localhost:18544'));
+    return new ethers.Wallet(walletPk, new ethers.JsonRpcProvider(PROVIDER_URL));
 }
 
 export async function getAliceSignature() {
     const wallet = getAliceWallet();
     const message = 'Hello, world!';
     return await wallet.signMessage(message);
+}
+
+export async function getAliceWalletBalance(asset: string) {
+    const wallet = getAliceWallet();
+    const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
+    if(asset === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE') {
+        return await provider.getBalance(wallet.address);
+    } else {
+        const contract = new ethers.Contract(asset, IERC20ABI.abi, provider);
+        return await contract.balanceOf(wallet.address);
+    }
 }
 
 export function getDarkSwapForAlice() {

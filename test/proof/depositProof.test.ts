@@ -33,8 +33,6 @@ describe('DepositProof', () => {
             merklePath: merklePath,
             signedMessage: signature,
         });
-    
-        console.log(proof);
         
     }, 30000);
 }); 

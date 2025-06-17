@@ -33,8 +33,6 @@ describe('RetailCreateOrderProof', () => {
             signedMessage: signature,
             feeAmount
         });
-    
-        console.log(proof);
         
     }, 30000);
 }); 
