@@ -1,13 +1,13 @@
 import { ethers } from 'ethers';
 import { generateJoinProof, JoinProofResult } from '../../proof/basic/joinProof';
-import { DarkSwapNote } from '../../types';
+import { DarkSwapNote, EMPTY_NULLIFIER } from '../../types';
 import { hexlify32, isAddressEquals } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
-import { multiGetMerklePathAndRoot } from '../merkletree';
+import { getMerklePathAndRoot, multiGetMerklePathAndRoot } from '../merkletree';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
-import { createNote } from '../../proof/noteService'; 
+import { createNote } from '../../proof/noteService';
 import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 
 class JoinContext extends BaseContext {
@@ -63,7 +63,7 @@ export class JoinService extends BaseContractService {
     inNote1: DarkSwapNote,
     inNote2: DarkSwapNote,
     signature: string
-  ): Promise<{ context: JoinContext; outNotes: DarkSwapNote[] }> {
+  ): Promise<{ context: JoinContext; outNote: DarkSwapNote }> {
     if (!isAddressEquals(inNote1.asset, inNote2.asset)) {
       throw new DarkSwapError('inNote1 and inNote2 must have the same asset');
     }
@@ -72,14 +72,14 @@ export class JoinService extends BaseContractService {
       throw new DarkSwapError('inNote1 and inNote2 must have different note');
     }
 
-    const [pubKey, privKey] = await generateKeyPair(signature);
+    const [pubKey] = await generateKeyPair(signature);
     const outNote = createNote(address, inNote1.asset, inNote1.amount + inNote2.amount, pubKey);
     const context = new JoinContext(signature);
     context.inNote1 = inNote1;
     context.inNote2 = inNote2;
     context.outNote = outNote;
     context.address = address;
-    return { context, outNotes: [outNote] };
+    return { context, outNote };
   }
 
   private async generateProof(context: JoinContext): Promise<void> {
@@ -90,7 +90,6 @@ export class JoinService extends BaseContractService {
     const merklePathes = await multiGetMerklePathAndRoot([context.inNote1.note, context.inNote2.note], this._darkSwap);
     const path1 = merklePathes[0];
     const path2 = merklePathes[1];
-
 
     const proof = await generateJoinProof({
       inNote1: context.inNote1,
@@ -121,12 +120,16 @@ export class JoinService extends BaseContractService {
     );
     const tx = await contract.join(
       context.merkleRoot,
-      context.proof.inNullifier1,
-      context.proof.inNullifier2,
+      [
+        context.proof.inNullifier1,
+        context.proof.inNullifier2,
+        hexlify32(EMPTY_NULLIFIER)
+      ],
       hexlify32(context.outNote.note),
       context.proof.outNoteFooter,
       context.proof.proof
     );
+    await tx.wait();
     return tx.hash;
   }
 }

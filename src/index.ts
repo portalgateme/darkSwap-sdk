@@ -5,3 +5,4 @@ export * from './utils/util';
 export * from './proof/keyService';
 export * from './config';
 export * from './types';
+export * from './utils/swapUtils';

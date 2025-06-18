@@ -8,7 +8,7 @@ import { createNote } from '../../proof/noteService';
 import { DarkSwapNote } from '../../types';
 import { hexlify32, isAddressEquals } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
-import { multiGetMerklePathAndRoot } from '../merkletree';
+import { getMerklePathAndRoot, multiGetMerklePathAndRoot } from '../merkletree';
 
 class TripleJoinContext extends BaseContext {
   private _inNote1?: DarkSwapNote;
@@ -74,7 +74,7 @@ export class TripleJoinService extends BaseContractService {
     inNote2: DarkSwapNote,
     inNote3: DarkSwapNote,
     signature: string
-  ): Promise<{ context: TripleJoinContext; outNotes: DarkSwapNote[] }> {
+  ): Promise<{ context: TripleJoinContext; outNote: DarkSwapNote }> {
     if (!isAddressEquals(inNote1.asset, inNote2.asset)) {
       throw new DarkSwapError('inNote1 and inNote2 must have the same asset');
     }
@@ -83,23 +83,23 @@ export class TripleJoinService extends BaseContractService {
       throw new DarkSwapError('inNote1 and inNote2 must have different note');
     }
 
-    const [pubKey, privKey] = await generateKeyPair(signature);
-    const outNote = createNote(address, inNote1.asset, inNote1.amount + inNote2.amount, pubKey);
+    const [pubKey] = await generateKeyPair(signature);
+    const outNote = createNote(address, inNote1.asset, inNote1.amount + inNote2.amount + inNote3.amount, pubKey);
     const context = new TripleJoinContext(signature);
     context.inNote1 = inNote1;
     context.inNote2 = inNote2;
     context.inNote3 = inNote3;
     context.outNote = outNote;
     context.address = address;
-    return { context, outNotes: [outNote] };
+    return { context, outNote };
   }
 
   private async generateProof(context: TripleJoinContext): Promise<void> {
-    if (!context 
-      || !context.inNote1 
-      || !context.inNote2 
-      || !context.inNote3 
-      || !context.outNote 
+    if (!context
+      || !context.inNote1
+      || !context.inNote2
+      || !context.inNote3
+      || !context.outNote
       || !context.address) {
       throw new DarkSwapError('Invalid context');
     }
@@ -130,12 +130,12 @@ export class TripleJoinService extends BaseContractService {
 
   public async execute(context: TripleJoinContext): Promise<string> {
     await this.generateProof(context);
-    if (!context 
-      || !context.inNote1 
-      || !context.inNote2 
+    if (!context
+      || !context.inNote1
+      || !context.inNote2
       || !context.inNote3
-      || !context.outNote 
-      || !context.proof 
+      || !context.outNote
+      || !context.proof
       || !context.merkleRoot) {
       throw new DarkSwapError('Invalid context');
     }
@@ -145,11 +145,13 @@ export class TripleJoinService extends BaseContractService {
       DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
-    const tx = await contract.tripleJoin(
+    const tx = await contract.join(
       context.merkleRoot,
-      context.proof.inNullifier1,
-      context.proof.inNullifier2,
-      context.proof.inNullifier3,
+      [
+        context.proof.inNullifier1,
+        context.proof.inNullifier2,
+        context.proof.inNullifier3
+      ],
       hexlify32(context.outNote.note),
       context.proof.outNoteFooter,
       context.proof.proof

@@ -118,40 +118,6 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "_noteCommitment",
-          "type": "bytes32"
-        }
-      ],
-      "name": "getMerklePath",
-      "outputs": [
-        {
-          "internalType": "bytes32[]",
-          "name": "",
-          "type": "bytes32[]"
-        },
-        {
-          "internalType": "bool[]",
-          "name": "",
-          "type": "bool[]"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "getMerkleRoot",
       "outputs": [
@@ -159,6 +125,40 @@
           "internalType": "bytes32",
           "name": "",
           "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "_noteCommitments",
+          "type": "bytes32[]"
+        }
+      ],
+      "name": "getMultiMerklePaths",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32[][]",
+          "name": "",
+          "type": "bytes32[][]"
+        },
+        {
+          "internalType": "bool[][]",
+          "name": "",
+          "type": "bool[][]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
         }
       ],
       "stateMutability": "view",

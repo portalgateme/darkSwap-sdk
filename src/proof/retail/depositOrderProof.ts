@@ -3,7 +3,7 @@ import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex } from "../../utils/formatters";
 import { bn_to_hex } from "../../utils/formatters";
 import { mimc_bn254 } from "../../utils/mimc";
-import { uint8ArrayToNumberArray } from "../../utils/proofUtils";
+import { signatureToHexString, uint8ArrayToNumberArray } from "../../utils/proofUtils";
 import { generateProof, signMessage } from "../baseProofService";
 import { generateKeyPair } from "../keyService";
 import { calcNullifier, getNoteFooter } from "../noteService";
@@ -69,7 +69,7 @@ export async function generateRetailSwapMessage(
         orderNullifier: orderNoteNullifier,
         inNote: swapInNote,
         publicKey: pubKey,
-        signature: signature,
+        signature: signatureToHexString(signature),
     }
 }
 

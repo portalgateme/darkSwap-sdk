@@ -5,9 +5,8 @@ export function mergeUnit8Array(arr1: Uint8Array, arr2: Uint8Array) {
 }
 
 
-export function signatureToHexString(sig: [Uint8Array, Uint8Array]): string {
-    const buff = Buffer.concat(sig);
-    return '0x' + buff.toString('hex');
+export function signatureToHexString(sig: Buffer): string {
+    return '0x' + sig.toString('hex');
 }
 
 export function hexStringToSignature(hex: string): Uint8Array {

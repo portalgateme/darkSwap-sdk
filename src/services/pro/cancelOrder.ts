@@ -6,8 +6,9 @@ import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
 import { generateProCancelOrderProof, ProCancelOrderProofResult } from '../../proof/pro/orders/cancelOrderProof';
 import { DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { hexlify32 } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
-import { getMerklePathAndRoot, multiGetMerklePathAndRoot } from '../merkletree';
+import { EMPTY_PATH, getMerklePathAndRoot, MerklePath, multiGetMerklePathAndRoot } from '../merkletree';
 
 class ProCancelOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -63,7 +64,7 @@ export class ProCancelOrderService extends BaseContractService {
     balanceNote: DarkSwapNote,
     signature: string
   ): Promise<{ context: ProCancelOrderContext; newBalance: DarkSwapNote }> {
-    const [pubKey, privKey] = await generateKeyPair(signature);
+    const [pubKey] = await generateKeyPair(signature);
     const newBalance = createNote(address, orderNote.asset, balanceNote.amount + orderNote.amount, pubKey);
     const context = new ProCancelOrderContext(signature);
     context.orderNote = orderNote;
@@ -83,28 +84,42 @@ export class ProCancelOrderService extends BaseContractService {
       throw new DarkSwapError('Invalid context');
     }
 
-    // const { root, index, path } = await getMerklePathAndRoot(context.oldBalance.note, this._darkSwap);
-    const merklePathAndRoots = await multiGetMerklePathAndRoot([context.oldBalance.note, context.newBalance.note], this._darkSwap);
+    let orderPath: MerklePath;
+    let oldBalancePath: MerklePath;
+    if (context.oldBalance.amount === 0n) {
+      const path1 = await getMerklePathAndRoot(context.orderNote.note, this._darkSwap);
+      orderPath = path1;
+      oldBalancePath = EMPTY_PATH;
+    } else {
+      const merklePathes = await multiGetMerklePathAndRoot([context.orderNote.note, context.oldBalance.note], this._darkSwap);
+      orderPath = merklePathes[0];
+      oldBalancePath = merklePathes[1];
+    }
 
     const proof = await generateProCancelOrderProof({
-      merkleRoot: merklePathAndRoots[0].root,
-      merkleIndex: merklePathAndRoots[0].index,
-      merklePath: merklePathAndRoots[0].path,
-      merkleIndexRemaining: merklePathAndRoots[1].index,
-      merklePathRemaining: merklePathAndRoots[1].path,
+      merkleRoot: orderPath.root,
+      merkleIndex: orderPath.index,
+      merklePath: orderPath.path,
+      merkleIndexRemaining: oldBalancePath.index,
+      merklePathRemaining: oldBalancePath.path,
       orderNote: context.orderNote,
       oldBalanceNote: context.oldBalance,
       newBalanceNote: context.newBalance,
       address: context.address,
       signedMessage: context.signature,
     });
-    context.merkleRoot = merklePathAndRoots[0].root;
+    context.merkleRoot = orderPath.root;
     context.proof = proof;
   }
 
   public async execute(context: ProCancelOrderContext): Promise<string> {
     await this.generateProof(context);
-    if (!context || !context.orderNote || !context.oldBalance || !context.newBalance || !context.proof) {
+    if (!context
+      || !context.orderNote
+      || !context.oldBalance
+      || !context.newBalance
+      || !context.proof
+      || !context.merkleRoot) {
       throw new DarkSwapError('Invalid context');
     }
 
@@ -114,11 +129,14 @@ export class ProCancelOrderService extends BaseContractService {
       this._darkSwap.signer
     );
     const tx = await contract.proCancelOrder(
+      context.merkleRoot,
       context.proof.orderNullifier,
       context.proof.oldBalanceNullifier,
+      hexlify32(context.newBalance.note),
       context.proof.newBalanceNoteFooter,
       context.proof.proof
     );
+    await tx.wait();
     return tx.hash;
   }
 }

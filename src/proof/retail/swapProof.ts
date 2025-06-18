@@ -4,7 +4,7 @@ import { BaseProofResult, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, Dark
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";
 import { mimc_bn254 } from "../../utils/mimc";
-import { uint8ArrayToNumberArray } from "../../utils/proofUtils";
+import { hexStringToSignature, uint8ArrayToNumberArray } from "../../utils/proofUtils";
 import { generateProof, signMessage } from "../baseProofService";
 import { generateKeyPair } from "../keyService";
 import { calcNullifier, getNoteFooter } from "../noteService";
@@ -133,7 +133,7 @@ export async function generateRetailSwapProof(param: RetailSwapProofParam): Prom
         alice_in_note_footer: bn_to_0xhex(aliceInNoteFooter),
 
         alice_pub_key: [param.aliceMessage.publicKey[0].toString(), param.aliceMessage.publicKey[1].toString()],
-        alice_signature: uint8ArrayToNumberArray(param.aliceMessage.signature),
+        alice_signature: uint8ArrayToNumberArray(hexStringToSignature(param.aliceMessage.signature)),
 
         bob_merkle_index: param.bobMerkleIndex,
         bob_merkle_path: param.bobMerklePath.map((x) => bn_to_0xhex(BigInt(x))),
@@ -150,7 +150,7 @@ export async function generateRetailSwapProof(param: RetailSwapProofParam): Prom
         bob_in_note_footer: bn_to_0xhex(bobInNoteFooter),
 
         bob_pub_key: [param.bobMessage.publicKey[0].toString(), param.bobMessage.publicKey[1].toString()],
-        bob_signature: uint8ArrayToNumberArray(param.bobMessage.signature),
+        bob_signature: uint8ArrayToNumberArray(hexStringToSignature(param.bobMessage.signature)),
     };
     const proof = await generateProof(retailSwapCircuit, inputs);
     return {

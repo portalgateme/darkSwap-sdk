@@ -134,7 +134,7 @@ export class DepositService extends BaseContractService {
         context.proof.proof,
         { value: 0n }
       );
-      await tx.wait();
+      const receipt = await tx.wait();
       return tx.hash;
     } else {
       const tx = await contract.deposit(
@@ -147,7 +147,7 @@ export class DepositService extends BaseContractService {
         context.proof.proof,
         { value: context.depositAmount }
       );
-      await tx.wait();
+      const receipt = await tx.wait();
       return tx.hash;
     }
   }

@@ -53,8 +53,8 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
-    darkSwapAssetManager: '0xeF66010868Ff77119171628B7eFa0F6179779375',
-    darkSwapFeeAssetManager: '0xe3EF345391654121f385679613Cea79A692C2Dd8',
+    darkSwapAssetManager: '0x6D39d71fF4ab56a4873febd34e1a3BDefc01b41e',
+    darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
     drakSwapSubgraphUrl: 'https://34.142.142.240:8080/subgraphs/name/singularity/',
 
   }

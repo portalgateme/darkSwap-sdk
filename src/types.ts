@@ -69,5 +69,5 @@ export type DarkSwapMessage = {
     orderNullifier: string,
     inNote: DarkSwapNote,
     publicKey: [Fr, Fr],
-    signature: any,
+    signature: string,
 }

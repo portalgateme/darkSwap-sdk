@@ -6,7 +6,7 @@ import { getNoteOnChainStatusBySignature } from '../../src/services/noteService'
 
 describe('DepositService', () => {
     it('should deposit', async () => {
-        const wallet = await getAliceWallet();
+        const wallet = getAliceWallet();
         const signature = await getAliceSignature();
         const asset = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 

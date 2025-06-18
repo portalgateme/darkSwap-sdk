@@ -1,5 +1,5 @@
 import proCancelOrderCircuit from "../../../circuits/pro/dark_swap_cancel_order_compiled_circuit.json";
-import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, PROOF_DOMAIN } from "../../../types";
+import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, EMPTY_NULLIFIER, PROOF_DOMAIN } from "../../../types";
 import { encodeAddress } from "../../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../../utils/formatters";
 import { mimc_bn254 } from "../../../utils/mimc";
@@ -73,7 +73,10 @@ export async function generateProCancelOrderProof(param: ProCancelOrderProofPara
     const [[fuzkPubKeyX, fuzkPubKeyY], fuzkPriKey] = await generateKeyPair(param.signedMessage);
 
     const orderNullifier = calcNullifier(param.orderNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
-    const oldBalanceNullifier = calcNullifier(param.oldBalanceNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
+    let oldBalanceNullifier = EMPTY_NULLIFIER;
+    if (param.oldBalanceNote.amount != 0n) {
+        oldBalanceNullifier = calcNullifier(param.oldBalanceNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
+    }
     const newBalanceNoteFooter = getNoteFooter(param.newBalanceNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
 
     const addressMod = encodeAddress(param.address);
