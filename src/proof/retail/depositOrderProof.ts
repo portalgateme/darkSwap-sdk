@@ -49,16 +49,17 @@ export async function generateRetailSwapMessage(
     address: string,
     orderNote: DarkSwapOrderNote,
     swapInNote: DarkSwapNote,
+    feeAmount: bigint,
     pubKey: [Fr, Fr],
     privKey: Fr
 ): Promise<DarkSwapMessage> {
 
     const addressMod = encodeAddress(address);
-    const orderNoteNullifier = hexlify32(calcNullifier(orderNote.rho, pubKey));
+    const orderNoteNullifier = calcNullifier(orderNote.rho, pubKey);
     const message = bn_to_hex(mimc_bn254([
         BigInt(PROOF_DOMAIN.RETAIL_CREATE_ORDER),
         addressMod,
-        orderNote.note,
+        orderNoteNullifier,
         orderNote.feeRatio,
         swapInNote.note,
     ]));
@@ -66,8 +67,9 @@ export async function generateRetailSwapMessage(
 
     return {
         orderNote: orderNote,
-        orderNullifier: orderNoteNullifier,
+        orderNullifier: bn_to_0xhex(orderNoteNullifier),
         inNote: swapInNote,
+        feeAmount: feeAmount,
         publicKey: pubKey,
         signature: signatureToHexString(signature),
     }

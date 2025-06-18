@@ -9,9 +9,20 @@ export function getAliceWallet() {
     return new ethers.Wallet(walletPk, new ethers.JsonRpcProvider(PROVIDER_URL));
 }
 
+export function getBobWallet() {
+    const walletPk = '59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d';
+    return new ethers.Wallet(walletPk, new ethers.JsonRpcProvider(PROVIDER_URL));
+}
+
 export async function getAliceSignature() {
     const wallet = getAliceWallet();
     const message = 'Hello, world!';
+    return await wallet.signMessage(message);
+}
+
+export async function getBobSignature() {
+    const wallet = getBobWallet();
+    const message = 'Hello, darkSwap!';
     return await wallet.signMessage(message);
 }
 
@@ -28,6 +39,23 @@ export async function getAliceWalletBalance(asset: string) {
 
 export function getDarkSwapForAlice() {
     const wallet = getAliceWallet();
+    return new DarkSwap(
+        wallet,
+        31337,
+        {
+            priceOracle: '0x0000000000000000000000000000000000000000',
+            ethAddress: '0x0000000000000000000000000000000000000000',
+            nativeWrapper: '0x0000000000000000000000000000000000000000',
+            merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
+            darkSwapAssetManager: '0x6D39d71fF4ab56a4873febd34e1a3BDefc01b41e',
+            darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
+            drakSwapSubgraphUrl: '',
+        }
+    );
+}
+
+export function getDarkSwapForBob() {
+    const wallet = getBobWallet();
     return new DarkSwap(
         wallet,
         31337,

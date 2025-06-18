@@ -68,6 +68,7 @@ export type DarkSwapMessage = {
     orderNote: DarkSwapOrderNote,
     orderNullifier: string,
     inNote: DarkSwapNote,
+    feeAmount: bigint,
     publicKey: [Fr, Fr],
     signature: string,
 }

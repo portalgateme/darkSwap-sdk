@@ -1,5 +1,5 @@
 import swapCircuit from "../../../circuits/pro/dark_swap_pro_swap_compiled_circuit.json";
-import { BaseProofResult, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, FEE_RATIO_PRECISION, PROOF_DOMAIN } from "../../../types";
+import { BaseProofResult, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, EMPTY_FOOTER, PROOF_DOMAIN } from "../../../types";
 import { encodeAddress } from "../../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../../utils/formatters";
 import { mimc_bn254 } from "../../../utils/mimc";
@@ -72,6 +72,7 @@ export type ProSwapProofParam = {
     aliceMerklePath: string[],
     aliceAddress: string,
     aliceOrderNote: DarkSwapOrderNote,
+    aliceFeeAmount: bigint,
     aliceInNote: DarkSwapNote,
     aliceChangeNote: DarkSwapNote,
     aliceSignedMessage: string,
@@ -104,19 +105,16 @@ export async function generateProSwapProof(param: ProSwapProofParam): Promise<Pr
         throw new DarkSwapProofError("Invalid note amount");
     }
 
-    if (param.aliceOrderNote.amount != param.aliceChangeNote.amount - param.bobMessage.inNote.amount
-        || param.bobMessage.orderNote.amount != param.aliceInNote.amount) {
+    if (param.aliceOrderNote.amount != param.aliceChangeNote.amount + param.bobMessage.inNote.amount + param.bobMessage.feeAmount
+        || param.bobMessage.orderNote.amount != param.aliceInNote.amount + param.aliceFeeAmount) {
         throw new DarkSwapProofError("Invalid order amount");
     }
-
-    const aliceFeeAmount = param.aliceInNote.amount * param.aliceOrderNote.feeRatio / FEE_RATIO_PRECISION;
-    const bobFeeAmount = param.bobMessage.inNote.amount * param.bobMessage.orderNote.feeRatio / FEE_RATIO_PRECISION;
 
     const [[fuzkPubKeyX, fuzkPubKeyY], fuzkPriKey] = await generateKeyPair(param.aliceSignedMessage);
 
     const aliceOrderNoteNullifier = calcNullifier(param.aliceOrderNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
     const aliceInNoteFooter = getNoteFooter(param.aliceInNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
-    const aliceChangeNoteFooter = getNoteFooter(param.aliceChangeNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
+    const aliceChangeNoteFooter = param.aliceChangeNote.amount == 0n ? EMPTY_FOOTER : getNoteFooter(param.aliceChangeNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
     const bobOrderNoteNullifier = calcNullifier(param.bobMessage.orderNote.rho, param.bobMessage.publicKey);
     const bobInNoteFooter = getNoteFooter(param.bobMessage.inNote.rho, param.bobMessage.publicKey);
 
@@ -136,7 +134,6 @@ export async function generateProSwapProof(param: ProSwapProofParam): Promise<Pr
 
     const inputs: ProSwapProofInput = {
         merkle_root: param.merkleRoot,
-
         alice_merkle_index: param.aliceMerkleIndex,
         alice_merkle_path: param.aliceMerklePath,
         alice_address: bn_to_0xhex(aliceAddressMod),
@@ -145,7 +142,7 @@ export async function generateProSwapProof(param: ProSwapProofParam): Promise<Pr
         alice_out_nullifier: bn_to_0xhex(aliceOrderNoteNullifier),
         alice_out_amount: bn_to_0xhex(param.aliceOrderNote.amount),
         alice_fee_ratio: bn_to_0xhex(param.aliceOrderNote.feeRatio),
-        alice_fee_amount: bn_to_0xhex(aliceFeeAmount),
+        alice_fee_amount: bn_to_0xhex(param.aliceFeeAmount),
 
         alice_in_note: bn_to_0xhex(param.aliceInNote.note),
         alice_in_rho: bn_to_0xhex(param.aliceInNote.rho),
@@ -161,7 +158,7 @@ export async function generateProSwapProof(param: ProSwapProofParam): Promise<Pr
         bob_out_asset: bn_to_0xhex(encodeAddress(param.bobMessage.orderNote.asset)),
         bob_out_amount: bn_to_0xhex(param.bobMessage.orderNote.amount),
         bob_in_asset: bn_to_0xhex(encodeAddress(param.bobMessage.inNote.asset)),
-        bob_in_amount: bn_to_0xhex(param.bobMessage.inNote.amount),
+        bob_in_amount: bn_to_0xhex(param.bobMessage.inNote.amount + param.bobMessage.feeAmount),
 
         bob_merkle_index: param.bobMerkleIndex,
         bob_merkle_path: param.bobMerklePath,
@@ -171,7 +168,7 @@ export async function generateProSwapProof(param: ProSwapProofParam): Promise<Pr
         bob_out_rho: bn_to_0xhex(param.bobMessage.orderNote.rho),
         bob_out_nullifier: bn_to_0xhex(bobOrderNoteNullifier),
         bob_fee_ratio: bn_to_0xhex(param.bobMessage.orderNote.feeRatio),
-        bob_fee_amount: bn_to_0xhex(bobFeeAmount),
+        bob_fee_amount: bn_to_0xhex(param.bobMessage.feeAmount),
 
         bob_in_note: bn_to_0xhex(param.bobMessage.inNote.note),
         bob_in_rho: bn_to_0xhex(param.bobMessage.inNote.rho),

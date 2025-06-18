@@ -5,9 +5,10 @@ import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
 import { generateProSwapProof, ProSwapProofResult } from '../../proof/pro/orders/swapProof';
-import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, FEE_RATIO_PRECISION } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { multiGetMerklePathAndRoot } from '../merkletree';
+import { hexlify32 } from '../../utils/util';
 
 class ProSwapContext extends BaseContext {
     private _orderNote?: DarkSwapOrderNote;
@@ -16,6 +17,7 @@ class ProSwapContext extends BaseContext {
     private _proof?: ProSwapProofResult;
     private _bobAddress?: string;
     private _bobSwapMessage?: DarkSwapMessage;
+    private _aliceFeeAmount?: bigint;
 
     constructor(signature: string) {
         super(signature);
@@ -43,6 +45,14 @@ class ProSwapContext extends BaseContext {
 
     get swapInNote(): DarkSwapNote | undefined {
         return this._swapInNote;
+    }
+
+    set aliceFeeAmount(aliceFeeAmount: bigint | undefined) {
+        this._aliceFeeAmount = aliceFeeAmount;
+    }
+
+    get aliceFeeAmount(): bigint | undefined {
+        return this._aliceFeeAmount;
     }
 
     set proof(proof: ProSwapProofResult | undefined) {
@@ -78,20 +88,22 @@ export class ProSwapService extends BaseContractService {
     public async prepare(
         address: string,
         orderNote: DarkSwapOrderNote,
-        swapOutAmount: bigint,
-        swapInAmount: bigint,
         bobAddress: string,
         bobSwapMessage: DarkSwapMessage,
         signature: string
     ): Promise<{ context: ProSwapContext; swapInNote: DarkSwapNote, changeNote: DarkSwapNote }> {
-        const [pubKey, privKey] = await generateKeyPair(signature);
+        const [pubKey] = await generateKeyPair(signature);
+        const swapOutAmount = bobSwapMessage.feeAmount + bobSwapMessage.inNote.amount;
+        const swapInAmount = bobSwapMessage.orderNote.amount;
+        const aliceFeeAmount = swapInAmount * orderNote.feeRatio / FEE_RATIO_PRECISION;
         const changeNote = createNote(address, orderNote.asset, orderNote.amount - swapOutAmount, pubKey);
-        const swapInNote = createNote(address, bobSwapMessage.orderNote.asset, swapInAmount, pubKey);
+        const swapInNote = createNote(address, bobSwapMessage.orderNote.asset, swapInAmount - aliceFeeAmount, pubKey);
 
         const context = new ProSwapContext(signature);
         context.orderNote = orderNote;
         context.swapInNote = swapInNote;
         context.changeNote = changeNote;
+        context.aliceFeeAmount = aliceFeeAmount;
         context.address = address;
         context.bobAddress = bobAddress;
         context.bobSwapMessage = bobSwapMessage;
@@ -112,7 +124,7 @@ export class ProSwapService extends BaseContractService {
 
         const merklePathes = await multiGetMerklePathAndRoot([context.orderNote.note, context.bobSwapMessage.orderNote.note], this._darkSwap);
         const orderNotePath = merklePathes[0];
-        const bobSwapMessagePath = merklePathes[1];
+        const bobOrderNotePath = merklePathes[1];
 
         const proof = await generateProSwapProof({
             merkleRoot: orderNotePath.root,
@@ -122,10 +134,11 @@ export class ProSwapService extends BaseContractService {
             aliceOrderNote: context.orderNote,
             aliceChangeNote: context.changeNote,
             aliceInNote: context.swapInNote,
+            aliceFeeAmount: context.aliceFeeAmount!,
             aliceSignedMessage: context.signature,
             bobAddress: context.bobAddress,
-            bobMerkleIndex: bobSwapMessagePath.index,
-            bobMerklePath: bobSwapMessagePath.path,
+            bobMerkleIndex: bobOrderNotePath.index,
+            bobMerklePath: bobOrderNotePath.path,
             bobMessage: context.bobSwapMessage,
         });
         context.merkleRoot = orderNotePath.root;
@@ -134,7 +147,7 @@ export class ProSwapService extends BaseContractService {
 
     public async execute(context: ProSwapContext): Promise<string> {
         await this.generateProof(context);
-        if (!context 
+        if (!context
             || !context.orderNote
             || !context.swapInNote
             || !context.changeNote
@@ -150,13 +163,22 @@ export class ProSwapService extends BaseContractService {
             this._darkSwap.signer
         );
         const tx = await contract.proSwap(
-            context.proof.aliceOutNullifier,
-            context.proof.aliceChangeNoteFooter,
-            context.proof.aliceInNoteFooter,
-            context.proof.bobOutNullifier,
-            context.proof.bobInNoteFooter,
+            [
+                context.merkleRoot,
+                context.proof.aliceOutNullifier,
+                hexlify32(context.orderNote.feeRatio),
+                hexlify32(context.swapInNote.note),
+                context.proof.aliceInNoteFooter,
+                hexlify32(context.changeNote.note),
+                context.proof.aliceChangeNoteFooter,
+                context.proof.bobOutNullifier,
+                hexlify32(context.bobSwapMessage.orderNote.feeRatio),
+                hexlify32(context.bobSwapMessage.inNote.note),
+                context.proof.bobInNoteFooter
+            ],
             context.proof.proof
         );
+        await tx.wait();
         return tx.hash;
     }
 }
