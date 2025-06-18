@@ -128,7 +128,7 @@ export class ProCancelOrderService extends BaseContractService {
       DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
-    const tx = await contract.proCancelOrder(
+    const tx = await contract.cancelOrder(
       context.merkleRoot,
       context.proof.orderNullifier,
       context.proof.oldBalanceNullifier,
