@@ -9,6 +9,7 @@ import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, FEE_RATIO_PRECISION }
 import { BaseContext, BaseContractService } from '../BaseService';
 import { multiGetMerklePathAndRoot } from '../merkletree';
 import { hexlify32 } from '../../utils/util';
+import { generateRetailSwapMessage } from '../../proof/retail/depositOrderProof';
 
 class ProSwapContext extends BaseContext {
     private _orderNote?: DarkSwapOrderNote;
@@ -85,13 +86,26 @@ export class ProSwapService extends BaseContractService {
         super(_darkSwap);
     }
 
+    public static async prepareProSwapMessageForBob(
+        address: string,
+        orderNote: DarkSwapOrderNote,
+        swapInAmount: bigint,
+        swapInAsset: string,
+        signature: string
+    ): Promise<DarkSwapMessage> {
+        const [pubKey, privKey] = await generateKeyPair(signature);
+        const feeAmount = swapInAmount * orderNote.feeRatio / FEE_RATIO_PRECISION;
+        const swapInNote = createNote(address, swapInAsset, swapInAmount - feeAmount, pubKey);
+        return await generateRetailSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey);
+    }
+
     public async prepare(
         address: string,
         orderNote: DarkSwapOrderNote,
         bobAddress: string,
         bobSwapMessage: DarkSwapMessage,
         signature: string
-    ): Promise<{ context: ProSwapContext; swapInNote: DarkSwapNote, changeNote: DarkSwapNote }> {
+    ): Promise<{ context: ProSwapContext; swapInNote: DarkSwapNote, changeNote: DarkSwapNote, feeAmount: bigint }> {
         const [pubKey] = await generateKeyPair(signature);
         const swapOutAmount = bobSwapMessage.feeAmount + bobSwapMessage.inNote.amount;
         const swapInAmount = bobSwapMessage.orderNote.amount;
@@ -107,7 +121,7 @@ export class ProSwapService extends BaseContractService {
         context.address = address;
         context.bobAddress = bobAddress;
         context.bobSwapMessage = bobSwapMessage;
-        return { context, swapInNote, changeNote };
+        return { context, swapInNote, changeNote, feeAmount: aliceFeeAmount };
     }
 
     private async generateProof(context: ProSwapContext): Promise<void> {

@@ -66,6 +66,7 @@ export async function generateRetailSwapMessage(
     const signature = await signMessage(message, privKey);
 
     return {
+        address: address,
         orderNote: orderNote,
         orderNullifier: bn_to_0xhex(orderNoteNullifier),
         inNote: swapInNote,

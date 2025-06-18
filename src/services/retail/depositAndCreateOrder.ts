@@ -90,7 +90,7 @@ export class RetailCreateOrderService extends BaseContractService {
     context.feeAmount = feeAmount;
     context.address = address;
 
-    const swapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, pubKey, privKey);
+    const swapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey);
     context.swapMessage = swapMessage;
     return { context, swapMessage };
   }

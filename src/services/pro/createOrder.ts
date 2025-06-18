@@ -1,15 +1,15 @@
 import { ethers } from 'ethers';
 import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
-import { getFeeRatio } from '../feeRatioService';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { calcNullifier, createNote, createOrderNoteExt } from '../../proof/noteService';
 import { generateProCreateOrderProof, ProCreateOrderProofResult } from '../../proof/pro/orders/createOrderProof';
 import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapOrderNoteExt } from '../../types';
-import { BaseContext, BaseContractService } from '../BaseService';
-import { getMerklePathAndRoot } from '../merkletree';
 import { hexlify32 } from '../../utils/util';
+import { BaseContext, BaseContractService } from '../BaseService';
+import { getFeeRatio } from '../feeRatioService';
+import { getMerklePathAndRoot } from '../merkletree';
 
 class ProCreateOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;

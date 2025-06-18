@@ -3,6 +3,7 @@ import { DarkSwapMessage } from "../types";
 
 export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
     return JSON.stringify({
+        address: swapMessage.address,
         orderNote: {
             rho: swapMessage.orderNote.rho.toString(),
             amount: swapMessage.orderNote.amount.toString(),
@@ -10,16 +11,16 @@ export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
             note: swapMessage.orderNote.note.toString(),
             feeRatio: swapMessage.orderNote.feeRatio.toString(),
         },
-        feeAmount: swapMessage.feeAmount.toString(),
+        orderNullifier: swapMessage.orderNullifier,
         inNote: {
             rho: swapMessage.inNote.rho.toString(),
             amount: swapMessage.inNote.amount.toString(),
             asset: swapMessage.inNote.asset,
             note: swapMessage.inNote.note.toString(),
         },
-        signature: swapMessage.signature,
+        feeAmount: swapMessage.feeAmount.toString(),
         pubKey: [swapMessage.publicKey[0].toString(), swapMessage.publicKey[1].toString()],
-        orderNullifier: swapMessage.orderNullifier,
+        signature: swapMessage.signature,
     });
 }
 
@@ -30,6 +31,7 @@ function deserializePublicKey(publicKeyString: string[]): [Fr, Fr] {
 export function deserializeDarkSwapMessage(serializedMessage: string): DarkSwapMessage {
     const message = JSON.parse(serializedMessage);
     return {
+        address: message.address,
         orderNote: {
             rho: BigInt(message.orderNote.rho),
             amount: BigInt(message.orderNote.amount),

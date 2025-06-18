@@ -1,8 +1,8 @@
 import { assert, describe, it } from 'vitest';
-import { getAliceSignature, getAliceWallet, getAliceWalletBalance, getBobSignature, getBobWallet, getDarkSwapForAlice, getDarkSwapForBob } from "../../utils/helpers";
-import { createNote, EMPTY_NOTE } from '../../../src/proof/noteService';
-import { DepositService, FEE_RATIO_PRECISION, generateKeyPair, generateProSwapMessage, NoteOnChainStatus, ProCancelOrderService, ProCreateOrderService, ProSwapService } from '../../../src';
+import { DepositService, NoteOnChainStatus, ProCreateOrderService, ProSwapService } from '../../../src';
+import { EMPTY_NOTE } from '../../../src/proof/noteService';
 import { getNoteOnChainStatusBySignature } from '../../../src/services/noteService';
+import { getAliceSignature, getAliceWallet, getBobSignature, getBobWallet, getDarkSwapForAlice, getDarkSwapForBob } from "../../utils/helpers";
 
 describe('ProSwapService', () => {
     it('should swap', async () => {
@@ -46,23 +46,19 @@ describe('ProSwapService', () => {
         assert.equal(bobNewBalance2.amount, bobDepositAmount - bobOrderAmount);
         assert.equal(bobOrderNote.amount, bobOrderAmount);
 
-        const [bobPubKey] = await generateKeyPair(bobSignature);
-
-        const bobFeeAmount = bobOrderNote.feeRatio * bobSwapInAmount / FEE_RATIO_PRECISION;
-        const bobSwapInNote = createNote(bobWallet.address, swapInAsset, bobSwapInAmount - bobFeeAmount, bobPubKey);
-        const bobSwapMessage = await generateProSwapMessage(bobWallet.address, bobOrderNote, bobSwapInNote, bobSwapInAmount, bobSignature);
+        const bobSwapMessage = await ProSwapService.prepareProSwapMessageForBob(bobWallet.address, bobOrderNote, bobSwapInAmount, swapInAsset, bobSignature);
 
         const aliceSwapService = new ProSwapService(aliceDarkSwap);
-        const { context: context5, swapInNote: aliceSwapInNote, changeNote: aliceChangeNote } = 
+        const { context: context5, swapInNote: aliceSwapInNote, changeNote: aliceChangeNote, feeAmount: aliceFeeAmount } = 
         await aliceSwapService.prepare(aliceWallet.address, aliceOrderNote,bobWallet.address, bobSwapMessage, aliceSignature);
         await aliceSwapService.execute(context5);
 
-        assert.equal(aliceSwapInNote.amount, bobOrderAmount - bobFeeAmount);
+        assert.equal(aliceSwapInNote.amount, bobOrderAmount - aliceFeeAmount);
         assert.equal(aliceChangeNote.amount, aliceOrderNote.amount - bobSwapInAmount);
 
         const aliceOnChainStatus = await getNoteOnChainStatusBySignature(aliceDarkSwap, aliceSwapInNote, aliceSignature);
         assert.equal(aliceOnChainStatus, NoteOnChainStatus.ACTIVE);
-        const bobOnChainStatus = await getNoteOnChainStatusBySignature(bobDarkSwap, bobSwapInNote, bobSignature);
+        const bobOnChainStatus = await getNoteOnChainStatusBySignature(bobDarkSwap, bobSwapMessage.inNote, bobSignature);
         assert.equal(bobOnChainStatus, NoteOnChainStatus.ACTIVE);
 
     }, 6000);

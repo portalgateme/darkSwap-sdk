@@ -65,6 +65,7 @@ export type BaseProofInput = {
 }
 
 export type DarkSwapMessage = {
+    address: string,
     orderNote: DarkSwapOrderNote,
     orderNullifier: string,
     inNote: DarkSwapNote,
