@@ -3,6 +3,7 @@ export * from './entities';
 export * from './darkSwap';
 export * from './utils/util';
 export * from './proof/keyService';
+export * from './proof/noteService';
 export * from './config';
 export * from './types';
 export * from './utils/swapUtils';
