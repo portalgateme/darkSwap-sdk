@@ -92,12 +92,12 @@ export class ProSwapService extends BaseContractService {
         swapInAmount: bigint,
         swapInAsset: string,
         signature: string
-    ): Promise<{darkSwapMessage:DarkSwapMessage, swapInNote: DarkSwapNote}> {
+    ): Promise<DarkSwapMessage> {
         const [pubKey, privKey] = await generateKeyPair(signature);
         const feeAmount = swapInAmount * orderNote.feeRatio / FEE_RATIO_PRECISION;
         const swapInNote = createNote(address, swapInAsset, swapInAmount - feeAmount, pubKey);
         const darkSwapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey);
-        return { darkSwapMessage, swapInNote};
+        return darkSwapMessage;
     }
 
     public async prepare(

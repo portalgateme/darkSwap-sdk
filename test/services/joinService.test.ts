@@ -1,8 +1,8 @@
 import { assert, describe, it } from 'vitest';
-import { getAliceSignature, getAliceWallet, getAliceWalletBalance, getDarkSwapForAlice } from "../utils/helpers";
-import { EMPTY_NOTE } from '../../src/proof/noteService';
 import { DepositService, JoinService, NoteOnChainStatus, TripleJoinService } from '../../src';
+import { EMPTY_NOTE } from '../../src/proof/noteService';
 import { getNoteOnChainStatusBySignature } from '../../src/services/noteService';
+import { getAliceSignature, getAliceWallet, getDarkSwapForAlice } from "../utils/helpers";
 
 describe('JoinService', () => {
     it('should join 2', async () => {
@@ -38,33 +38,33 @@ describe('JoinService', () => {
         assert.equal(outNote.amount, depositAmount1 + depositAmount2);
     }, 30000);
 
-    // it('should join 3', async () => {
-    //     const wallet = getAliceWallet();
-    //     const signature = await getAliceSignature();
-    //     const asset = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+    it('should join 3', async () => {
+        const wallet = getAliceWallet();
+        const signature = await getAliceSignature();
+        const asset = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
-    //     const darkSwap = getDarkSwapForAlice();
-    //     const depositAmount1 = 1000000000000000000n;
-    //     const depositService = new DepositService(darkSwap);
-    //     const { context, newBalanceNote: newBalanceNote1 } = await depositService.prepare(EMPTY_NOTE, asset, depositAmount1, wallet.address, signature);
-    //     await depositService.execute(context);
+        const darkSwap = getDarkSwapForAlice();
+        const depositAmount1 = 1000000000000000000n;
+        const depositService = new DepositService(darkSwap);
+        const { context, newBalanceNote: newBalanceNote1 } = await depositService.prepare(EMPTY_NOTE, asset, depositAmount1, wallet.address, signature);
+        await depositService.execute(context);
 
-    //     const depositAmount2 = 2000000000000000000n;
-    //     const { context: context2, newBalanceNote: newBalanceNote2 } = await depositService.prepare(EMPTY_NOTE, asset, depositAmount2, wallet.address, signature);
-    //     await depositService.execute(context2);
+        const depositAmount2 = 2000000000000000000n;
+        const { context: context2, newBalanceNote: newBalanceNote2 } = await depositService.prepare(EMPTY_NOTE, asset, depositAmount2, wallet.address, signature);
+        await depositService.execute(context2);
 
-    //     const depositAmount3 = 3000000000000000000n;
-    //     const { context: context3, newBalanceNote: newBalanceNote3 } = await depositService.prepare(EMPTY_NOTE, asset, depositAmount3, wallet.address, signature);
-    //     await depositService.execute(context3);
+        const depositAmount3 = 3000000000000000000n;
+        const { context: context3, newBalanceNote: newBalanceNote3 } = await depositService.prepare(EMPTY_NOTE, asset, depositAmount3, wallet.address, signature);
+        await depositService.execute(context3);
 
 
-    //     const joinService = new TripleJoinService(darkSwap);
-    //     const { context: context4, outNote } = await joinService.prepare(wallet.address, newBalanceNote1, newBalanceNote2, newBalanceNote3, signature);
-    //     await joinService.execute(context4);
+        const joinService = new TripleJoinService(darkSwap);
+        const { context: context4, outNote } = await joinService.prepare(wallet.address, newBalanceNote1, newBalanceNote2, newBalanceNote3, signature);
+        await joinService.execute(context4);
 
-    //     const onChainStatus = await getNoteOnChainStatusBySignature(darkSwap, outNote, signature);
-    //     assert.equal(onChainStatus, NoteOnChainStatus.ACTIVE);
+        const onChainStatus = await getNoteOnChainStatusBySignature(darkSwap, outNote, signature);
+        assert.equal(onChainStatus, NoteOnChainStatus.ACTIVE);
 
-    //     assert.equal(outNote.amount, depositAmount1 + depositAmount2 + depositAmount3);
-    // }, 60000);
+        assert.equal(outNote.amount, depositAmount1 + depositAmount2 + depositAmount3);
+    }, 60000);
 });

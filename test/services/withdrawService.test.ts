@@ -1,8 +1,8 @@
 import { assert, describe, it } from 'vitest';
-import { getAliceSignature, getAliceWallet, getAliceWalletBalance, getDarkSwapForAlice } from "../utils/helpers";
-import { EMPTY_NOTE } from '../../src/proof/noteService';
 import { DepositService, NoteOnChainStatus, WithdrawService } from '../../src';
+import { EMPTY_NOTE } from '../../src/proof/noteService';
 import { getNoteOnChainStatusBySignature } from '../../src/services/noteService';
+import { getAliceSignature, getAliceWallet, getAliceWalletBalance, getDarkSwapForAlice } from "../utils/helpers";
 
 describe('WithdrawService', () => {
     it('should withdraw', async () => {
