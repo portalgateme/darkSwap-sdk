@@ -1,12 +1,9 @@
-import { Field } from "@noir-lang/types";
 import retailSwapCircuit from "../../circuits/retail/dark_swap_retail_swap_compiled_circuit.json";
-import { BaseProofResult, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, FEE_RATIO_PRECISION, PROOF_DOMAIN } from "../../types";
+import { BaseProofResult, DarkSwapMessage, DarkSwapProofError, FEE_RATIO_PRECISION } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
-import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";
-import { mimc_bn254 } from "../../utils/mimc";
+import { bn_to_0xhex } from "../../utils/formatters";
 import { hexStringToSignature, uint8ArrayToNumberArray } from "../../utils/proofUtils";
-import { generateProof, signMessage } from "../baseProofService";
-import { generateKeyPair } from "../keyService";
+import { generateProof } from "../baseProofService";
 import { calcNullifier, getNoteFooter } from "../noteService";
 
 type RetailSwapProofInput = {
@@ -65,12 +62,10 @@ export type RetailSwapProofParam = {
     merkleRoot: string,
     aliceMerkleIndex: number[],
     aliceMerklePath: string[],
-    aliceAddress: string,
     aliceMessage: DarkSwapMessage,
 
     bobMerkleIndex: number[],
     bobMerklePath: string[],
-    bobAddress: string,
     bobMessage: DarkSwapMessage,
 }
 
@@ -108,8 +103,8 @@ export async function generateRetailSwapProof(param: RetailSwapProofParam): Prom
     const bobOrderNoteNullifier = calcNullifier(param.bobMessage.orderNote.rho, param.bobMessage.publicKey);
     const bobInNoteFooter = getNoteFooter(param.bobMessage.inNote.rho, param.bobMessage.publicKey);
 
-    const aliceAddressMod = encodeAddress(param.aliceAddress);
-    const bobAddressMod = encodeAddress(param.bobAddress);
+    const aliceAddressMod = encodeAddress(param.aliceMessage.address);
+    const bobAddressMod = encodeAddress(param.bobMessage.address);
 
     const inputs: RetailSwapProofInput = {
         merkle_root: param.merkleRoot,
