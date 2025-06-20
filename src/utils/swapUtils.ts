@@ -33,6 +33,7 @@ export function deserializeDarkSwapMessage(serializedMessage: string): DarkSwapM
     return {
         address: message.address,
         orderNote: {
+            address: message.orderNote.address,
             rho: BigInt(message.orderNote.rho),
             amount: BigInt(message.orderNote.amount),
             asset: message.orderNote.asset,
@@ -41,6 +42,7 @@ export function deserializeDarkSwapMessage(serializedMessage: string): DarkSwapM
         },
         feeAmount: BigInt(message.feeAmount),
         inNote: {
+            address: message.inNote.address,
             rho: BigInt(message.inNote.rho),
             amount: BigInt(message.inNote.amount),
             asset: message.inNote.asset,

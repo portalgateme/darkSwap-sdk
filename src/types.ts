@@ -40,6 +40,7 @@ export type DarkSwapOrderNoteExt = DarkSwapOrderNote & {
 }
 
 export type CreateNoteParam = {
+    address: string,
     rho: bigint,
     amount: bigint,
     asset: string,

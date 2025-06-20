@@ -8,24 +8,17 @@ import cryptoJs from 'crypto-js'
 
 let getRandomValues: (buf: Uint8Array) => Uint8Array
 
-if (
-  typeof window !== 'undefined' &&
-  window.crypto &&
-  window.crypto.getRandomValues
-) {
-  getRandomValues = (buf) => window.crypto.getRandomValues(buf)
-} else {
-  getRandomValues = (buf) => {
-    const randomBytes = cryptoJs.randomBytes(buf.length)
-    buf.set(randomBytes)
-    return buf
-  }
+getRandomValues = (buf) => {
+  const randomBytes = cryptoJs.randomBytes(buf.length)
+  buf.set(randomBytes)
+  return buf
 }
 
 export const DOMAIN_NOTE = 2n
 export const DOMAIN_ORDER_NOTE = 3n
 
 export const EMPTY_NOTE: DarkSwapNote = {
+  address: '0x0000000000000000000000000000000000000000',
   rho: 0n,
   note: 0n,
   amount: 0n,
@@ -45,6 +38,7 @@ export function createNote(
   const assetMod = encodeAddress(asset)
   const note = mimc_bn254([DOMAIN_NOTE, addressMod, assetMod, amount, footer])
   return {
+    address,
     rho,
     note,
     asset,
@@ -106,6 +100,7 @@ export function createOrderNoteExt(
   ])
 
   return {
+    address,
     rho,
     note: noteCommitment,
     asset,
