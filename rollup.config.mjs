@@ -6,7 +6,7 @@ const config = {
   output: [
     {
       file: 'dist/index.js',
-      format: 'esm',
+      format: 'cjs',
       sourcemap: true,
       exports: 'named',
     },
@@ -14,20 +14,6 @@ const config = {
       file: 'dist/index.esm.js',
       format: 'esm',
       sourcemap: true,
-    },
-    {
-      file: 'dist/index.umd.js',
-      format: 'umd',
-      name: 'DarkSwapSDK',
-      sourcemap: true,
-      globals: {
-        '@aztec/bb.js': 'AztecBB',
-        '@aztec/foundation': 'AztecFoundation',
-        '@noir-lang/noir_js': 'NoirJS',
-        '@noir-lang/noir_wasm': 'NoirWasm',
-        '@noir-lang/types': 'NoirTypes',
-        'ethers': 'ethers'
-      },
     },
   ],
   plugins: [
