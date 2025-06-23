@@ -1,17 +1,21 @@
-import { Fr } from '@aztec/foundation/fields'
 import { hexlify } from 'ethers'
-import { DarkSwapNote, DarkSwapNoteExt, DarkSwapOrderNote } from '../types.js'
-import { P } from '../utils/constants.js'
-import { encodeAddress } from '../utils/encoders.js'
-import { mimc_bn254 } from '../utils/mimc.js'
-import cryptoJs from 'crypto-js'
+import { DarkSwapNote, DarkSwapNoteExt, DarkSwapOrderNote } from '../types'
+import { P } from '../utils/constants'
+import { encodeAddress } from '../utils/encoders'
+import { mimc_bn254 } from '../utils/mimc'
+import { Fr } from '../aztec/fields/fields'
 
-let getRandomValues: (buf: Uint8Array) => Uint8Array
+let getRandomValues: (buf: Uint8Array) => Uint8Array;
 
-getRandomValues = (buf) => {
-  const randomBytes = cryptoJs.randomBytes(buf.length)
-  buf.set(randomBytes)
-  return buf
+if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+    getRandomValues = (buf) => window.crypto.getRandomValues(buf);
+} else {
+    const nodeCrypto = require('crypto');
+    getRandomValues = (buf) => {
+        const randomBytes = nodeCrypto.randomBytes(buf.length);
+        buf.set(randomBytes);
+        return buf;
+    };
 }
 
 export const DOMAIN_NOTE = 2n

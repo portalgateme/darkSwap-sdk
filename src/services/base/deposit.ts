@@ -69,7 +69,7 @@ export class DepositService extends BaseContractService {
     walletAddress: string,
     signature: string,
   ): Promise<{ context: DepositContext; newBalanceNote: DarkSwapNote }> {
-    const [pubKey, privKey] = await generateKeyPair(signature);
+    const [pubKey] = await generateKeyPair(signature);
     const newBalanceAmount = depositAmount + currentBalance.amount;
     const newBalance = createNote(walletAddress, depositAsset, newBalanceAmount, pubKey);
     const context = new DepositContext(signature);
@@ -134,7 +134,7 @@ export class DepositService extends BaseContractService {
         context.proof.proof,
         { value: 0n }
       );
-      const receipt = await tx.wait();
+      await tx.wait();
       return tx.hash;
     } else {
       const tx = await contract.deposit(
@@ -147,7 +147,7 @@ export class DepositService extends BaseContractService {
         context.proof.proof,
         { value: context.depositAmount }
       );
-      const receipt = await tx.wait();
+      await tx.wait();
       return tx.hash;
     }
   }

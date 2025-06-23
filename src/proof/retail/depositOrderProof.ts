@@ -1,4 +1,4 @@
-import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, EMPTY_NULLIFIER, FEE_RATIO_PRECISION, PROOF_DOMAIN } from "../../types";
+import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex } from "../../utils/formatters";
 import { bn_to_hex } from "../../utils/formatters";
@@ -7,9 +7,8 @@ import { signatureToHexString, uint8ArrayToNumberArray } from "../../utils/proof
 import { generateProof, signMessage } from "../baseProofService";
 import { generateKeyPair } from "../keyService";
 import { calcNullifier, getNoteFooter } from "../noteService";
-import { Fr } from "@aztec/foundation/fields";
 import retailCreateOrderCircuit from "../../circuits/retail/dark_swap_retail_deposit_create_order_compiled_circuit.json";
-import { hexlify32 } from "../../utils/util";
+import { Fr } from "../../aztec/fields/fields";
 
 type RetailCreateOrderProofInput = BaseProofInput & {
     deposit_out_note: string,

@@ -3,7 +3,7 @@ import { generateJoinProof, JoinProofResult } from '../../proof/basic/joinProof'
 import { DarkSwapNote, EMPTY_NULLIFIER } from '../../types';
 import { hexlify32, isAddressEquals } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
-import { getMerklePathAndRoot, multiGetMerklePathAndRoot } from '../merkletree';
+import { multiGetMerklePathAndRoot } from '../merkletree';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';

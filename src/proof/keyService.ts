@@ -1,6 +1,5 @@
-import { Schnorr } from "@aztec/foundation/crypto";
-import { Fq, Fr } from "@aztec/foundation/fields";
-
+import { Fq, Fr } from "../aztec/fields/fields";
+import { Schnorr } from "../aztec/crypto/schnorr";
 
 export async function generateKeyPair(signature: string): Promise<[[Fr, Fr], Fr]> {
     const privateKey = Fr.fromBufferReduce(Buffer.from(signature.replace("0x", ""), "hex"));

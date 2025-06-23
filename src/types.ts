@@ -1,6 +1,6 @@
-import { Fr } from "@aztec/foundation/fields";
+import { Fr } from "./aztec/fields/fields";
 
-export type Hex = `0x${string}`;
+export type Hex = string;
 
 export enum PROOF_DOMAIN {
     DEPOSIT = 10001,

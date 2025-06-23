@@ -1,6 +1,6 @@
 import { UltraHonkBackend } from "@aztec/bb.js";
-import { Schnorr } from "@aztec/foundation/crypto";
-import { Fq, Fr } from "@aztec/foundation/fields";
+import { Schnorr } from "../aztec/crypto/schnorr";
+import { Fq, Fr } from "../aztec/fields/fields";
 import { Noir } from "@noir-lang/noir_js";
 import { hexlify } from "ethers";
 

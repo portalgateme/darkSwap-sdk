@@ -1,0 +1,361 @@
+import { toBigIntBE, toBufferBE } from '../bigint-buffer';
+import { BufferReader } from '../serialize/buffer_reader';
+
+const ZERO_BUFFER = Buffer.alloc(32);
+
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+
+/**
+ * Represents a field derived from BaseField.
+ */
+type DerivedField<T extends BaseField> = {
+  new (value: any): T;
+  /**
+   * All derived fields will specify a MODULUS.
+   */
+  MODULUS: bigint;
+};
+
+/**
+ * Base field class.
+ * Conversions from Buffer to BigInt and vice-versa are not cheap.
+ * We allow construction with either form and lazily convert to other as needed.
+ * We only check we are within the field modulus when initializing with bigint.
+ */
+abstract class BaseField {
+  static SIZE_IN_BYTES = 32;
+  private asBuffer?: Buffer;
+  private asBigInt?: bigint;
+
+  /**
+   * Return bigint representation.
+   * @deprecated Just to get things compiling. Use toBigInt().
+   * */
+  get value(): bigint {
+    return this.toBigInt();
+  }
+
+  /** Returns the size in bytes. */
+  get size(): number {
+    return BaseField.SIZE_IN_BYTES;
+  }
+
+  protected constructor(value: number | bigint | boolean | BaseField | Buffer) {
+    if (Buffer.isBuffer(value)) {
+      if (value.length > BaseField.SIZE_IN_BYTES) {
+        throw new Error(`Value length ${value.length} exceeds ${BaseField.SIZE_IN_BYTES}`);
+      }
+      this.asBuffer =
+        value.length === BaseField.SIZE_IN_BYTES
+          ? value
+          : Buffer.concat([Buffer.alloc(BaseField.SIZE_IN_BYTES - value.length), value]);
+    } else if (typeof value === 'bigint' || typeof value === 'number' || typeof value === 'boolean') {
+      this.asBigInt = BigInt(value);
+      if (this.asBigInt >= this.modulus()) {
+        throw new Error(`Value 0x${this.asBigInt.toString(16)} is greater or equal to field modulus.`);
+      }
+    } else if (value instanceof BaseField) {
+      this.asBuffer = value.asBuffer;
+      this.asBigInt = value.asBigInt;
+    } else {
+      throw new Error(`Type '${typeof value}' with value '${value}' passed to BaseField ctor.`);
+    }
+  }
+
+  protected abstract modulus(): bigint;
+
+  /**
+   * We return a copy of the Buffer to ensure this remains immutable.
+   */
+  toBuffer(): Buffer {
+    if (!this.asBuffer) {
+      this.asBuffer = toBufferBE(this.asBigInt!, 32);
+    }
+    return Buffer.from(this.asBuffer);
+  }
+
+  toString(): string {
+    return `0x${this.toBuffer().toString('hex')}`;
+  }
+
+  toBigInt(): bigint {
+    if (this.asBigInt === undefined) {
+      this.asBigInt = toBigIntBE(this.asBuffer!);
+      if (this.asBigInt >= this.modulus()) {
+        throw new Error(`Value 0x${this.asBigInt.toString(16)} is greater or equal to field modulus.`);
+      }
+    }
+    return this.asBigInt;
+  }
+
+  toBool(): boolean {
+    return Boolean(this.toBigInt());
+  }
+
+  /**
+   * Converts this field to a number.
+   * Throws if the underlying value is greater than MAX_SAFE_INTEGER.
+   */
+  toNumber(): number {
+    const value = this.toBigInt();
+    if (value > Number.MAX_SAFE_INTEGER) {
+      throw new Error(`Value ${value.toString(16)} greater than than max safe integer`);
+    }
+    return Number(value);
+  }
+
+  /**
+   * Converts this field to a number.
+   * May cause loss of precision if the underlying value is greater than MAX_SAFE_INTEGER.
+   */
+  toNumberUnsafe(): number {
+    const value = this.toBigInt();
+    return Number(value);
+  }
+
+  toShortString(): string {
+    const str = this.toString();
+    return `${str.slice(0, 10)}...${str.slice(-4)}`;
+  }
+
+  equals(rhs: BaseField): boolean {
+    return this.toBuffer().equals(rhs.toBuffer());
+  }
+
+  lt(rhs: BaseField): boolean {
+    return this.toBigInt() < rhs.toBigInt();
+  }
+
+  cmp(rhs: BaseField): -1 | 0 | 1 {
+    const lhsBigInt = this.toBigInt();
+    const rhsBigInt = rhs.toBigInt();
+    return lhsBigInt === rhsBigInt ? 0 : lhsBigInt < rhsBigInt ? -1 : 1;
+  }
+
+  isZero(): boolean {
+    return this.toBuffer().equals(ZERO_BUFFER);
+  }
+
+  isEmpty(): boolean {
+    return this.isZero();
+  }
+
+  toFriendlyJSON(): string {
+    return this.toString();
+  }
+
+  toField() {
+    return this;
+  }
+}
+
+/**
+ * Constructs a field from a Buffer of BufferReader.
+ * It maybe not read the full 32 bytes if the Buffer is shorter, but it will padded in BaseField constructor.
+ */
+export function fromBuffer<T extends BaseField>(buffer: Buffer | BufferReader, f: DerivedField<T>) {
+  const reader = BufferReader.asReader(buffer);
+  return new f(reader.readBytes(BaseField.SIZE_IN_BYTES));
+}
+
+/**
+ * Constructs a field from a Buffer, but reduces it first, modulo the field modulus.
+ * This requires a conversion to a bigint first so the initial underlying representation will be a bigint.
+ */
+function fromBufferReduce<T extends BaseField>(buffer: Buffer, f: DerivedField<T>) {
+  return new f(toBigIntBE(buffer) % f.MODULUS);
+}
+
+/**
+ * Constructs a field from a 0x prefixed hex string.
+ */
+function fromHexString<T extends BaseField>(buf: string, f: DerivedField<T>) {
+  const withoutPrefix = buf.replace(/^0x/i, '');
+  const checked = withoutPrefix.match(/^[0-9A-F]+$/i)?.[0];
+  if (checked === undefined) {
+    throw new Error(`Invalid hex-encoded string: "${buf}"`);
+  }
+
+  const buffer = Buffer.from(checked.length % 2 === 1 ? '0' + checked : checked, 'hex');
+
+  return new f(buffer);
+}
+
+/** Branding to ensure fields are not interchangeable types. */
+export interface Fr {
+  /** Brand. */
+  _branding: 'Fr';
+}
+
+/**
+ * Fr field class.
+ * @dev This class is used to represent elements of BN254 scalar field or elements in the base field of Grumpkin.
+ * (Grumpkin's scalar field corresponds to BN254's base field and vice versa.)
+ */
+export class Fr extends BaseField {
+  static ZERO = new Fr(0n);
+  static ONE = new Fr(1n);
+  static MODULUS = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001n;
+  static MAX_FIELD_VALUE = new Fr(Fr.MODULUS - 1n);
+
+  constructor(value: number | bigint | boolean | Fr | Buffer) {
+    super(value);
+  }
+
+  protected modulus() {
+    return Fr.MODULUS;
+  }
+
+  static zero() {
+    return Fr.ZERO;
+  }
+
+  static isZero(value: Fr) {
+    return value.isZero();
+  }
+
+  static fromBuffer(buffer: Buffer | BufferReader) {
+    return fromBuffer(buffer, Fr);
+  }
+
+  static fromBufferReduce(buffer: Buffer) {
+    return fromBufferReduce(buffer, Fr);
+  }
+
+  /**
+   * Creates a Fr instance from a string.
+   * @param buf - the string to create a Fr from.
+   * @returns the Fr instance
+   * @remarks if the string only consists of numbers, we assume we are parsing a bigint,
+   * otherwise we require the hex string to be prepended with "0x", to ensure there is no misunderstanding
+   * as to what is being parsed.
+   */
+  static fromString(buf: string) {
+    if (buf.match(/^\d+$/) !== null) {
+      return new Fr(toBufferBE(BigInt(buf), 32));
+    }
+    if (buf.match(/^0x/i) !== null) {
+      return fromHexString(buf, Fr);
+    }
+
+    throw new Error(`Tried to create a Fr from an invalid string: ${buf}`);
+  }
+
+  /**
+   * Creates a Fr instance from a hex string.
+   * @param buf - a hex encoded string.
+   * @returns the Fr instance
+   */
+  static fromHexString(buf: string) {
+    return fromHexString(buf, Fr);
+  }
+}
+
+
+/**
+ * Branding to ensure fields are not interchangeable types.
+ */
+export interface Fq {
+  /** Brand. */
+  _branding: 'Fq';
+}
+
+/**
+ * Fq field class.
+ * @dev This class is used to represent elements of BN254 base field or elements in the scalar field of Grumpkin.
+ * (Grumpkin's scalar field corresponds to BN254's base field and vice versa.)
+ */
+export class Fq extends BaseField {
+  static ZERO = new Fq(0n);
+  static MODULUS = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47n;
+  private static HIGH_SHIFT = BigInt((BaseField.SIZE_IN_BYTES / 2) * 8);
+  private static LOW_MASK = (1n << Fq.HIGH_SHIFT) - 1n;
+
+  get lo(): Fr {
+    return new Fr(this.toBigInt() & Fq.LOW_MASK);
+  }
+
+  get hi(): Fr {
+    return new Fr(this.toBigInt() >> Fq.HIGH_SHIFT);
+  }
+
+  constructor(value: number | bigint | boolean | Fq | Buffer) {
+    super(value);
+  }
+
+  protected modulus() {
+    return Fq.MODULUS;
+  }
+
+  static zero() {
+    return Fq.ZERO;
+  }
+
+  static fromBuffer(buffer: Buffer | BufferReader) {
+    return fromBuffer(buffer, Fq);
+  }
+
+  static fromBufferReduce(buffer: Buffer) {
+    return fromBufferReduce(buffer, Fq);
+  }
+
+  /**
+   * Creates a Fq instance from a string.
+   * @param buf - the string to create a Fq from.
+   * @returns the Fq instance
+   * @remarks if the string only consists of numbers, we assume we are parsing a bigint,
+   * otherwise we require the hex string to be prepended with "0x", to ensure there is no misunderstanding
+   * as to what is being parsed.
+   */
+  static fromString(buf: string) {
+    if (buf.match(/^\d+$/) !== null) {
+      return new Fq(toBufferBE(BigInt(buf), 32));
+    }
+    if (buf.match(/^0x/i) !== null) {
+      return fromHexString(buf, Fq);
+    }
+
+    throw new Error(`Tried to create a Fq from an invalid string: ${buf}`);
+  }
+
+  /**
+   * Creates a Fq instance from a hex string.
+   * @param buf - a hex encoded string.
+   * @returns the Fq instance
+   */
+  static fromHexString(buf: string) {
+    return fromHexString(buf, Fq);
+  }
+
+  static fromHighLow(high: Fr, low: Fr): Fq {
+    return new Fq((high.toBigInt() << Fq.HIGH_SHIFT) + low.toBigInt());
+  }
+
+  add(rhs: Fq) {
+    return new Fq((this.toBigInt() + rhs.toBigInt()) % Fq.MODULUS);
+  }
+
+  toJSON() {
+    return this.toString();
+  }
+
+  toFields() {
+    // The following has to match the order of the limbs in EmbeddedCurveScalar struct in noir::std. This is because
+    // this function is used when returning Scalar from the getAddressSecret oracle and in Noir the values get deserialized
+    // using the intrinsic serialization of Noir (which follows the order of the fields/members in the struct).
+    return [this.lo, this.hi];
+  }
+}
+
+/**
+ * GrumpkinScalar is an Fq.
+ * @remarks Called GrumpkinScalar because it is used to represent elements in Grumpkin's scalar field as defined in
+ *          the Aztec Protocol Specs.
+ */
+export type GrumpkinScalar = Fq;
+export const GrumpkinScalar = Fq;
+
+/** Wraps a function that returns a buffer so that all results are reduced into a field of the given type. */
+export function reduceFn<TInput, TField extends BaseField>(fn: (input: TInput) => Buffer, field: DerivedField<TField>) {
+  return (input: TInput) => fromBufferReduce(fn(input), field);
+}

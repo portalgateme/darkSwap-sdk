@@ -8,7 +8,7 @@ import { createNote } from '../../proof/noteService';
 import { DarkSwapNote } from '../../types';
 import { hexlify32, isAddressEquals } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
-import { getMerklePathAndRoot, multiGetMerklePathAndRoot } from '../merkletree';
+import { multiGetMerklePathAndRoot } from '../merkletree';
 
 class TripleJoinContext extends BaseContext {
   private _inNote1?: DarkSwapNote;

@@ -1,6 +1,6 @@
 {
   "name": "@thesingularitynetwork/darkswap-sdk",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "DarkSwap SDK for browser and Node.js",
   "type": "module",
   "types": "dist/types/src/index.d.ts",
@@ -10,9 +10,8 @@
     "src"
   ],
   "scripts": {
-    "build:types": "tsc -p tsconfig.json",
-    "build:js": "rollup -c",
-    "build": "yarn build:types && yarn build:js",
+    "build": "tsdx build",
+    "build:prod": "tsdx build --prod",
     "dev": "rollup -c --bundleConfigAsCjs -w",
     "test": "vitest",
     "lint": "eslint src --ext .ts",
@@ -27,6 +26,7 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.27.4",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
     "@babel/preset-env": "^7.27.2",
     "@rollup/plugin-json": "^6.1.0",
     "@types/jest": "^29.5.14",
@@ -39,17 +39,16 @@
     "rollup": "^4.41.1",
     "rollup-plugin-typescript2": "^0.36.0",
     "ts-node": "^10.9.2",
+    "tsdx": "^0.14.1",
     "typescript": "^5.8.3",
     "vitest": "^3.1.4"
   },
   "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72",
   "dependencies": {
-    "@aztec/bb.js": "^0.84.0",
-    "@aztec/foundation": "^0.84.0",
-    "@noir-lang/noir_js": "^1.0.0-beta.3",
-    "@noir-lang/noir_wasm": "^1.0.0-beta.3",
-    "@noir-lang/types": "^1.0.0-beta.3",
-    "crypto-js": "^4.2.0",
+    "@aztec/bb.js": "0.84.0",
+    "@noir-lang/noir_js": "1.0.0-beta.6",
+    "@noir-lang/noir_wasm": "1.0.0-beta.6",
+    "@noir-lang/types": "1.0.0-beta.6",
     "ethers": "^6.14.3"
   }
 }

@@ -1,5 +1,5 @@
-import { Fr } from "@aztec/foundation/fields";
 import { DarkSwapMessage } from "../types";
+import { Fr } from "../aztec/fields/fields";
 
 export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
     return JSON.stringify({

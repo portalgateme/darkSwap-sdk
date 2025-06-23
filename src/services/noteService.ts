@@ -4,9 +4,9 @@ import MerkleAbi from '../abis/MerkleTreeOperator.json';
 import { NoteOnChainStatus } from '../entities';
 import { DarkSwap } from '../darkSwap';
 import { DarkSwapNote } from '../types';
-import { Fr } from '@aztec/foundation/fields';
 import { calcNullifier } from '../proof/noteService';
 import { generateKeyPair } from '../proof/keyService';
+import { Fr } from '../aztec/fields/fields';
 
 function getContract(address: string, darkSwap: DarkSwap) {
   const provider = darkSwap.provider;
