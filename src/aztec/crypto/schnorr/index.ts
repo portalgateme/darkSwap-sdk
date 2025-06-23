@@ -35,6 +35,7 @@ export class Schnorr {
     const [s, e] = api
       .getWasm()
       .callWasmExport('schnorr_construct_signature', [messageArray, privateKey.toBuffer()], [32, 32]);
-    return new SchnorrSignature(Buffer.from([...s, ...e]));
+    
+    return new SchnorrSignature(Buffer.from(concatenateUint8Arrays([s,e])));
   }
 }

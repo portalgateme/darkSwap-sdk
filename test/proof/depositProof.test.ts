@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest';
-import { ethers, hexlify } from "ethers";
+import { ethers } from "ethers";
 import { generateDepositProof } from '../../src/proof/basic/depositProof';
 import { generateKeyPair } from '../../src/proof/keyService';
 import { createNote, EMPTY_NOTE } from '../../src/proof/noteService';
@@ -21,10 +21,10 @@ describe('DepositProof', () => {
         const merkleIndex = Array(32).fill(0);
         const merklePath = Array(32).fill(hexlify32(0n));
 
-        const [fuzkPubKey, fuzkPriKey] = await generateKeyPair(signature);
+        const [fuzkPubKey] = await generateKeyPair(signature);
         const newBalanceNote = createNote(wallet.address, asset, depositAmount, fuzkPubKey);
     
-        const proof = await generateDepositProof({
+        await generateDepositProof({
             address: wallet.address,
             oldBalanceNote: balanceNote,
             newBalanceNote: newBalanceNote,
