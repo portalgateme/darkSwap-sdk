@@ -8,14 +8,14 @@ import { Fr } from '../aztec/fields/fields'
 let getRandomValues: (buf: Uint8Array) => Uint8Array;
 
 if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
-    getRandomValues = (buf) => window.crypto.getRandomValues(buf);
+  getRandomValues = (buf) => window.crypto.getRandomValues(buf);
 } else {
-    const nodeCrypto = require('crypto');
-    getRandomValues = (buf) => {
-        const randomBytes = nodeCrypto.randomBytes(buf.length);
-        buf.set(randomBytes);
-        return buf;
-    };
+  const nodeCrypto = require('crypto');
+  getRandomValues = (buf) => {
+    const randomBytes = nodeCrypto.randomBytes(buf.length);
+    buf.set(randomBytes);
+    return buf;
+  };
 }
 
 export const DOMAIN_NOTE = 2n
@@ -111,4 +111,29 @@ export function createOrderNoteExt(
     amount,
     feeRatio,
   }
+}
+
+
+export function validateNoteWithPubKey(note: DarkSwapNote, fuzkPubKey: [Fr, Fr]) {
+  const addressMod = encodeAddress(note.address)
+  const assetMod = encodeAddress(note.asset)
+  const footer = getNoteFooter(note.rho, fuzkPubKey)
+  const noteCommitment = mimc_bn254([DOMAIN_NOTE, addressMod, assetMod, note.amount, footer])
+  return noteCommitment === note.note;
+}
+
+export function validateOrderNoteWithPubKey(note: DarkSwapOrderNote, fuzkPubKey: [Fr, Fr]) {
+  const footer = getNoteFooter(note.rho, fuzkPubKey)
+
+  const assetMod = encodeAddress(note.asset)
+  const addressMod = encodeAddress(note.address)
+  const noteCommitment = mimc_bn254([
+    DOMAIN_ORDER_NOTE,
+    addressMod,
+    assetMod,
+    note.amount,
+    note.feeRatio,
+    footer,
+  ])
+  return noteCommitment === note.note;
 }

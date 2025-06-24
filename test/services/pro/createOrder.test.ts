@@ -1,5 +1,5 @@
 import { assert, describe, it } from 'vitest';
-import { getAliceSignature, getAliceWallet, getAliceWalletBalance, getDarkSwapForAlice } from "../../utils/helpers";
+import { getAliceSignature, getAliceWallet, getDarkSwapForAlice } from "../../utils/helpers";
 import { EMPTY_NOTE } from '../../../src/proof/noteService';
 import { DepositService, NoteOnChainStatus, ProCancelOrderService, ProCreateOrderService } from '../../../src';
 import { getNoteOnChainStatusBySignature } from '../../../src/services/noteService';
@@ -20,7 +20,7 @@ describe('CreateOrderService', () => {
         assert.equal(onChainStatus, NoteOnChainStatus.ACTIVE);
 
         const orderAmount = 1000000000000000000n;
-        const swapInAsset = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+        const swapInAsset = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
         const swapInAmount = 2000000000000000000n;
         const createOrderService = new ProCreateOrderService(darkSwap);
         const { context:context2, orderNote, newBalance } = await createOrderService.prepare(wallet.address,asset,orderAmount,swapInAsset,swapInAmount,newBalanceNote, signature);
