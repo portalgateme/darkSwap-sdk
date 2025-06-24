@@ -5,11 +5,12 @@ import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
 import { generateProSwapProof, ProSwapProofResult } from '../../proof/pro/orders/swapProof';
-import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, FEE_RATIO_PRECISION } from '../../types';
+import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { multiGetMerklePathAndRoot } from '../merkletree';
 import { hexlify32 } from '../../utils/util';
 import { generateRetailSwapMessage } from '../../proof/retail/depositOrderProof';
+import { calcFeeAmount } from '../feeRatioService';
 
 class ProSwapContext extends BaseContext {
     private _orderNote?: DarkSwapOrderNote;
@@ -94,7 +95,7 @@ export class ProSwapService extends BaseContractService {
         signature: string
     ): Promise<DarkSwapMessage> {
         const [pubKey, privKey] = await generateKeyPair(signature);
-        const feeAmount = swapInAmount * orderNote.feeRatio / FEE_RATIO_PRECISION;
+        const feeAmount = calcFeeAmount(swapInAmount, orderNote.feeRatio);
         const swapInNote = createNote(address, swapInAsset, swapInAmount - feeAmount, pubKey);
         const darkSwapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey);
         return darkSwapMessage;
@@ -110,7 +111,7 @@ export class ProSwapService extends BaseContractService {
         const [pubKey] = await generateKeyPair(signature);
         const swapOutAmount = bobSwapMessage.feeAmount + bobSwapMessage.inNote.amount;
         const swapInAmount = bobSwapMessage.orderNote.amount;
-        const aliceFeeAmount = swapInAmount * orderNote.feeRatio / FEE_RATIO_PRECISION;
+        const aliceFeeAmount = calcFeeAmount(swapInAmount, orderNote.feeRatio);
         const changeNote = createNote(address, orderNote.asset, orderNote.amount - swapOutAmount, pubKey);
         const swapInNote = createNote(address, bobSwapMessage.orderNote.asset, swapInAmount - aliceFeeAmount, pubKey);
 

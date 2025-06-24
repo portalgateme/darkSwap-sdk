@@ -1,5 +1,6 @@
 import proCreateOrderCircuit from "../../../circuits/pro/dark_swap_pro_create_order_compiled_circuit.json";
-import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, EMPTY_FOOTER, FEE_RATIO_PRECISION, PROOF_DOMAIN } from "../../../types";
+import { calcFeeAmount } from "../../../services/feeRatioService";
+import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, EMPTY_FOOTER, PROOF_DOMAIN } from "../../../types";
 import { encodeAddress } from "../../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../../utils/formatters";
 import { mimc_bn254 } from "../../../utils/mimc";
@@ -73,7 +74,7 @@ export async function generateProCreateOrderProof(param: ProCreateOrderProofPara
         throw new DarkSwapProofError("Invalid order amount");
     }
 
-    const feeAmount = param.inAmount * param.orderNote.feeRatio / FEE_RATIO_PRECISION;
+    const feeAmount = calcFeeAmount(param.inAmount, param.orderNote.feeRatio);
 
     const [[fuzkPubKeyX, fuzkPubKeyY], fuzkPriKey] = await generateKeyPair(param.signedMessage);
 

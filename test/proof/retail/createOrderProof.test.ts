@@ -1,8 +1,7 @@
 import { ethers } from "ethers";
 import { describe, it } from 'vitest';
-import { createNote, createOrderNoteExt, EMPTY_NOTE } from "../../../src/proof/noteService";
 import { generateKeyPair } from "../../../src/proof/keyService";
-import { hexlify32 } from "../../../src/utils/util";
+import { createNote, createOrderNoteExt } from "../../../src/proof/noteService";
 import { generateRetailCreateOrderProof } from "../../../src/proof/retail/depositOrderProof";
 import { FEE_RATIO_PRECISION } from "../../../src/types";
 

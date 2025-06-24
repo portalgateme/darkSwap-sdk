@@ -1,14 +1,13 @@
 import { ethers } from 'ethers';
 import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
-//import { DEFAULT_FEE_RATIO } from '../../config/config';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote, createOrderNoteExt } from '../../proof/noteService';
 import { generateRetailCreateOrderProof, generateRetailSwapMessage, RetailCreateOrderProofResult } from '../../proof/retail/depositOrderProof';
-import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, FEE_RATIO_PRECISION } from '../../types';
+import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
-import { getFeeRatio } from '../feeRatioService';
+import { calcFeeAmount, getFeeRatio } from '../feeRatioService';
 import { hexlify32 } from '../../utils/util';
 import { bn_to_0xhex } from '../../utils/formatters';
 import { isNativeAsset } from '../../utils/util';
@@ -81,7 +80,7 @@ export class RetailCreateOrderService extends BaseContractService {
     const [pubKey, privKey] = await generateKeyPair(signature);
     const feeRatio = BigInt(await getFeeRatio(address, this._darkSwap));
     const orderNote = createOrderNoteExt(address, depositAsset, depositAmount, feeRatio, pubKey);
-    const feeAmount = (swapInAmount * feeRatio) / FEE_RATIO_PRECISION;
+    const feeAmount = calcFeeAmount(swapInAmount, feeRatio);
     const realSwapInAmount = swapInAmount - feeAmount
     const swapInNote = createNote(address, swapInAsset, realSwapInAmount, pubKey);
     const context = new RetailCreateOrderContext(signature);
