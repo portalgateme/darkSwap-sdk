@@ -3,7 +3,7 @@ import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
-import { createNote } from '../../proof/noteService';
+import { createNote, EMPTY_NOTE } from '../../proof/noteService';
 import { generateProSwapProof, ProSwapProofResult } from '../../proof/pro/orders/swapProof';
 import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
@@ -112,7 +112,8 @@ export class ProSwapService extends BaseContractService {
         const swapOutAmount = bobSwapMessage.feeAmount + bobSwapMessage.inNote.amount;
         const swapInAmount = bobSwapMessage.orderNote.amount;
         const aliceFeeAmount = calcFeeAmount(swapInAmount, orderNote.feeRatio);
-        const changeNote = createNote(address, orderNote.asset, orderNote.amount - swapOutAmount, pubKey);
+        const changeAmount = orderNote.amount - swapOutAmount;
+        const changeNote = changeAmount == 0n ? EMPTY_NOTE : createNote(address, orderNote.asset, changeAmount, pubKey);
         const swapInNote = createNote(address, bobSwapMessage.orderNote.asset, swapInAmount - aliceFeeAmount, pubKey);
 
         const context = new ProSwapContext(signature);
