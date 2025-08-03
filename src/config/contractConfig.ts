@@ -48,6 +48,15 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0x0', //FIXME
     drakSwapSubgraphUrl: ''
   },
+  [ChainId.HORIZEN_TESTNET]: {
+    priceOracle: '0x54c375f28ce4B0c2B986D6256E4Bc75d242A8793',
+    ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+    nativeWrapper: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
+    merkleTreeOperator: '0x8Cd4061C8b3743810B811E1F4A0B597D79225f4E',
+    darkSwapAssetManager: '0xEBeD6c7C2189bf8ad6687D3A4cf4b83fB4D1a3D2',
+    darkSwapFeeAssetManager: '0x8CF86856Bd7dE95b4ba33DCae4cd5Ec02542Bf5b',
+    drakSwapSubgraphUrl: ''
+  },
   [ChainId.HARDHAT]: {
     priceOracle: '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
