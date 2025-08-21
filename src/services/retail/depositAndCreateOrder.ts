@@ -11,6 +11,10 @@ import { calcFeeAmount, getFeeRatio } from '../feeRatioService';
 import { hexlify32 } from '../../utils/util';
 import { bn_to_0xhex } from '../../utils/formatters';
 import { isNativeAsset } from '../../utils/util';
+import { legacyTokenConfig } from '../../config';
+import { MAX_ALLOWANCE } from '../../utils/constants';
+import ERC20Abi from '../../abis/IERC20.json';
+import ERC20_USDT from '../../abis/IERC20_USDT.json';
 
 class RetailCreateOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -114,6 +118,28 @@ export class RetailCreateOrderService extends BaseContractService {
     context.proof = proof;
   }
 
+  protected async allowance(context: RetailCreateOrderContext) {
+    if (!context || !context.orderNote || !context.address || !context.signature || !context.proof) {
+      throw new DarkSwapError('Invalid context');
+    }
+    const signer = this._darkSwap.signer;
+    const asset = context.orderNote.asset;
+    const amount = context.orderNote.amount;
+    const allowanceContract = new ethers.Contract(asset, ERC20Abi.abi, this._darkSwap);
+    const allowance = await allowanceContract.allowance(
+      signer.getAddress(),
+      this._darkSwap.contracts.darkSwapAssetManager
+    );
+    if (BigInt(allowance) < amount) {
+      const isLegacy =
+        legacyTokenConfig.hasOwnProperty(this._darkSwap.chainId) &&
+        legacyTokenConfig[this._darkSwap.chainId].includes(asset.toLowerCase());
+      const contract = new ethers.Contract(asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
+      const tx = await contract.approve(this._darkSwap.contracts.darkSwapAssetManager, hexlify32(MAX_ALLOWANCE));
+      await tx.wait();
+    }
+  }
+
   public async execute(context: RetailCreateOrderContext): Promise<string> {
     await this.generateProof(context);
     if (!context || !context.orderNote || !context.swapInNote || !context.proof) {
@@ -128,6 +154,8 @@ export class RetailCreateOrderService extends BaseContractService {
     let ethAmount = 0n;
     if (isNativeAsset(context.orderNote.asset)) {
       ethAmount = context.orderNote.amount;
+    } else {
+      await this.allowance(context);
     }
     const tx = await contract.retailDepositCreateOrder(
       [
