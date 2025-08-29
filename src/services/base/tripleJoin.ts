@@ -9,6 +9,7 @@ import { DarkSwapNote } from '../../types';
 import { hexlify32, isAddressEquals } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { multiGetMerklePathAndRoot } from '../merkletree';
+import { refineGasLimit } from '../../utils/gasUtil';
 
 class TripleJoinContext extends BaseContext {
   private _inNote1?: DarkSwapNote;
@@ -145,7 +146,8 @@ export class TripleJoinService extends BaseContractService {
       DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
-    const tx = await contract.join(
+
+    const joinArgs = [
       context.merkleRoot,
       [
         context.proof.inNullifier1,
@@ -155,7 +157,11 @@ export class TripleJoinService extends BaseContractService {
       hexlify32(context.outNote.note),
       context.proof.outNoteFooter,
       context.proof.proof
-    );
+    ];
+
+    const estimatedGas = await contract.join.estimateGas(...joinArgs);
+    const gasLimit = refineGasLimit(estimatedGas);
+    const tx = await contract.join(...joinArgs, { gasLimit });
     return tx.hash;
   }
 }

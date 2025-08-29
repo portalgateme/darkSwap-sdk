@@ -13,6 +13,7 @@ import { MAX_ALLOWANCE } from '../../utils/constants';
 import { hexlify32, isNativeAsset } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { EMPTY_PATH, getMerklePathAndRoot } from '../merkletree';
+import { refineGasLimit } from '../../utils/gasUtil';
 
 export class DepositContext extends BaseContext {
   private _currentBalance?: DarkSwapNote;
@@ -105,11 +106,11 @@ export class DepositService extends BaseContractService {
   public async execute(context: DepositContext): Promise<string> {
     await this.generateProof(context);
 
-    if (!context 
-      || !context.currentBalance 
-      || !context.newBalance 
-      || !context.address 
-      || !context.signature 
+    if (!context
+      || !context.currentBalance
+      || !context.newBalance
+      || !context.address
+      || !context.signature
       || !context.proof
       || !context.depositAmount
     ) {
@@ -124,28 +125,42 @@ export class DepositService extends BaseContractService {
 
     if (!isNativeAsset(context.newBalance.asset)) {
       await this.allowance(context);
-      const tx = await contract.deposit(
+      const depositArgs = [
         context.merkleRoot,
         context.newBalance.asset,
         hexlify32(context.depositAmount),
         context.proof.oldBalanceNullifier,
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
-        context.proof.proof,
+        context.proof.proof];
+      const estimatedGas = await contract.deposit.estimateGas(
+        ...depositArgs,
         { value: 0n }
+      );
+      const gasLimit = refineGasLimit(estimatedGas);
+      const tx = await contract.deposit(
+        ...depositArgs,
+        { value: 0n, gasLimit }
       );
       await tx.wait();
       return tx.hash;
     } else {
-      const tx = await contract.deposit(
+      const depositArgs = [
         context.merkleRoot,
         context.newBalance.asset,
         hexlify32(context.depositAmount),
         context.proof.oldBalanceNullifier,
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
-        context.proof.proof,
+        context.proof.proof
+      ];
+      const estimatedGas = await contract.deposit.estimateGas(
+        ...depositArgs,
         { value: context.depositAmount }
+      );
+      const tx = await contract.deposit(
+        ...depositArgs,
+        { value: context.depositAmount, gasLimit: refineGasLimit(estimatedGas) }
       );
       await tx.wait();
       return tx.hash;

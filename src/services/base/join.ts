@@ -9,6 +9,7 @@ import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
 import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
+import { refineGasLimit } from '../../utils/gasUtil';
 
 class JoinContext extends BaseContext {
   private _inNote1?: DarkSwapNote;
@@ -118,7 +119,8 @@ export class JoinService extends BaseContractService {
       DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
-    const tx = await contract.join(
+
+    const joinArgs = [
       context.merkleRoot,
       [
         context.proof.inNullifier1,
@@ -128,7 +130,12 @@ export class JoinService extends BaseContractService {
       hexlify32(context.outNote.note),
       context.proof.outNoteFooter,
       context.proof.proof
-    );
+    ];
+
+    const estimatedGas = await contract.join.estimateGas(...joinArgs);
+    const gasLimit = refineGasLimit(estimatedGas);
+
+    const tx = await contract.join(...joinArgs, { gasLimit });
     await tx.wait();
     return tx.hash;
   }
