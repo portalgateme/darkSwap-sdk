@@ -7,3 +7,6 @@ export const legacyTokenConfig: { [chainId: number]: string[] } = {
 
 
 export const DEFAULT_FEE_RATIO = 300n;
+
+export const GAS_LIMIT_MULTIPLIER = 120n;
+export const GAS_LIMIT_PRECISION = 100n;

@@ -10,6 +10,7 @@ import { hexlify32 } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { getFeeRatio } from '../feeRatioService';
 import { getMerklePathAndRoot } from '../merkletree';
+import { refineGasLimit } from '../../utils/gasUtil';
 
 class ProCreateOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -166,16 +167,27 @@ export class ProCreateOrderService extends BaseContractService {
       DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
-    const tx = await contract.proCreateOrder(
-      [
-        context.merkleRoot,
-        context.proof.oldBalanceNullifier,
-        hexlify32(context.newBalance.note),
-        context.proof.newBalanceFooter,
-        hexlify32(context.orderNote.note),
-        context.proof.orderNoteFooter
-      ],
+
+    const txData = [
+      context.merkleRoot,
+      context.proof.oldBalanceNullifier,
+      hexlify32(context.newBalance.note),
+      context.proof.newBalanceFooter,
+      hexlify32(context.orderNote.note),
+      context.proof.orderNoteFooter
+    ];
+
+    const estimatedGas = await contract.proCreateOrder.estimateGas(
+      txData,
       context.proof.proof
+    );
+
+    const gasLimit = refineGasLimit(estimatedGas);
+    
+    const tx = await contract.proCreateOrder(
+      txData,
+      context.proof.proof,
+      { gasLimit }
     );
     await tx.wait();
     return tx.hash;
