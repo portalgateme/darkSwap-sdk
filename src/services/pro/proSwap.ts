@@ -179,21 +179,30 @@ export class ProSwapService extends BaseContractService {
             DarkSwapAssetManagerAbi.abi,
             this._darkSwap.signer
         );
-        const tx = await contract.proSwap(
-            [
-                context.merkleRoot,
-                context.proof.aliceOutNullifier,
-                hexlify32(context.orderNote.feeRatio),
-                hexlify32(context.swapInNote.note),
-                context.proof.aliceInNoteFooter,
-                hexlify32(context.changeNote.note),
-                context.proof.aliceChangeNoteFooter,
-                context.proof.bobOutNullifier,
-                hexlify32(context.bobSwapMessage.orderNote.feeRatio),
-                hexlify32(context.bobSwapMessage.inNote.note),
-                context.proof.bobInNoteFooter
-            ],
+
+        const swapArgs = [
+            context.merkleRoot,
+            context.proof.aliceOutNullifier,
+            hexlify32(context.orderNote.feeRatio),
+            hexlify32(context.swapInNote.note),
+            context.proof.aliceInNoteFooter,
+            hexlify32(context.changeNote.note),
+            context.proof.aliceChangeNoteFooter,
+            context.proof.bobOutNullifier,
+            hexlify32(context.bobSwapMessage.orderNote.feeRatio),
+            hexlify32(context.bobSwapMessage.inNote.note),
+            context.proof.bobInNoteFooter
+        ];
+
+        const estimatedGas = await contract.proSwap.estimateGas(
+            swapArgs,
             context.proof.proof
+        );
+
+        const tx = await contract.proSwap(
+            swapArgs,
+            context.proof.proof,
+            { gasLimit: estimatedGas }
         );
         await tx.wait();
         return tx.hash;
