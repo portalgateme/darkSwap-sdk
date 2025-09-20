@@ -94,7 +94,13 @@
         }
       ],
       "name": "appendMerkleLeaf",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -112,6 +118,25 @@
           "internalType": "bool",
           "name": "registered",
           "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_noteCommitment",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getCommitmentIndex",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -276,9 +301,9 @@
       "name": "noteCommitmentsCreated",
       "outputs": [
         {
-          "internalType": "bool",
-          "name": "created",
-          "type": "bool"
+          "internalType": "uint256",
+          "name": "commitmentIndex",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -461,6 +486,11 @@
           "internalType": "bytes32",
           "name": "commitment",
           "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "indexOffset",
+          "type": "uint256"
         }
       ],
       "name": "setNoteCommitmentCreated",

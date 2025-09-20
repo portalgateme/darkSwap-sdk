@@ -15,8 +15,8 @@ function getContract(address: string, darkSwap: DarkSwap) {
 
 async function getNoteOnChainStatus(darkSwap: DarkSwap, note: string, nullifier: string) {
   const contract = getContract(darkSwap.contracts.merkleTreeOperator, darkSwap);
-  const isCreated = (await contract.noteCommitmentsCreated(note)) as boolean;
-  if (!isCreated) {
+  const isNotCreated = (await contract.noteIsNotCreated(note)) as boolean;
+  if (isNotCreated) {
     return NoteOnChainStatus.UNKNOWN;
   }
   const isSpent = (await contract.nullifiersUsed(nullifier)) as boolean;
