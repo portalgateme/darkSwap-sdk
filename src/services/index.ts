@@ -5,3 +5,4 @@ export * from './retail';
 export * from './merkletree';
 export * from './feeRatioService';
 export * from './agent';
+export * from './synara';
