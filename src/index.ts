@@ -7,4 +7,3 @@ export * from './proof/noteService';
 export * from './config';
 export * from './types';
 export * from './utils/swapUtils';
-export * from './proof/synara/bridgeOrderProof';

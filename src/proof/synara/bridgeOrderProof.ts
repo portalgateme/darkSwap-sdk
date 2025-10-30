@@ -10,7 +10,6 @@ import { getNoteFooter } from "../noteService";
 
 type RetailDepositBridgeOrderProofInput = BaseProofInput & {
     dest_chain: string,
-    deposit_id: string,
     //bridge fee
     bridge_fee_amount: string,
 
@@ -69,10 +68,8 @@ export async function generateRetailBridgeOrderProof(param: RetailBridgeOrderPro
 
     const addressMod = encodeAddress(param.address);
     const depositSourceAssetMod = encodeAddress(param.depositSourceAsset);
-    const depositId = BigInt(param.depositId);
     const message = bn_to_hex(mimc_bn254([
         BigInt(PROOF_DOMAIN.RETAIL_BRIDGE_ORDER),
-        depositId,
         BigInt(param.destChain),
         addressMod,
         depositSourceAssetMod,
@@ -85,7 +82,6 @@ export async function generateRetailBridgeOrderProof(param: RetailBridgeOrderPro
     const inputs: RetailDepositBridgeOrderProofInput = {
         address: bn_to_0xhex(addressMod),
         dest_chain: bn_to_0xhex(BigInt(param.destChain)),
-        deposit_id: bn_to_0xhex(depositId),
         bridge_fee_amount: bn_to_0xhex(param.bridgeFeeAmount),
         deposit_out_note: bn_to_0xhex(param.depositNote.note),
         deposit_out_note_footer: bn_to_0xhex(depositFooter),
