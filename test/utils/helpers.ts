@@ -44,12 +44,15 @@ export function getDarkSwapForAlice() {
         31337,
         {
             priceOracle: '0x0000000000000000000000000000000000000000',
-            ethAddress: '0x0000000000000000000000000000000000000000',
+            ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
             nativeWrapper: '0x0000000000000000000000000000000000000000',
-            merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
-            darkSwapAssetManager: '0x6D39d71fF4ab56a4873febd34e1a3BDefc01b41e',
-            darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
-            drakSwapSubgraphUrl: '',
+            merkleTreeOperator: '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853',
+            darkSwapAssetManager: '0x09635F643e140090A9A8Dcd712eD6285858ceBef',
+            darkSwapFeeAssetManager: '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44',
+            darkSwapSubgraphUrl: '',
+            synaraDarkSwapOnBridgeAssetManager: '0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB',
+            synaraBridge: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+            zkverifyRelayerUrls: ["http://localhost:8000"],
         }
     );
 }
@@ -61,12 +64,15 @@ export function getDarkSwapForBob() {
         31337,
         {
             priceOracle: '0x0000000000000000000000000000000000000000',
-            ethAddress: '0x0000000000000000000000000000000000000000',
+            ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
             nativeWrapper: '0x0000000000000000000000000000000000000000',
-            merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
-            darkSwapAssetManager: '0x6D39d71fF4ab56a4873febd34e1a3BDefc01b41e',
-            darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
-            drakSwapSubgraphUrl: '',
+            merkleTreeOperator: '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853',
+            darkSwapAssetManager: '0x09635F643e140090A9A8Dcd712eD6285858ceBef',
+            darkSwapFeeAssetManager: '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44',
+            darkSwapSubgraphUrl: '',
+            synaraDarkSwapOnBridgeAssetManager: '0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB',
+            synaraBridge: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+            zkverifyRelayerUrls: ["http://localhost:8000"],
         }
     );
 }
