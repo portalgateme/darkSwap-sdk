@@ -156,7 +156,7 @@
         {
           "indexed": false,
           "internalType": "bytes32",
-          "name": "depositId",
+          "name": "depositCommitment",
           "type": "bytes32"
         },
         {
@@ -181,7 +181,7 @@
         {
           "indexed": false,
           "internalType": "bytes32",
-          "name": "depositId",
+          "name": "depositCommitment",
           "type": "bytes32"
         },
         {
@@ -448,6 +448,24 @@
     {
       "inputs": [
         {
+          "internalType": "bytes32",
+          "name": "depositCommitment",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "callData",
+          "type": "bytes"
+        }
+      ],
+      "name": "receiveFromBridge",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "address",
           "name": "asset",
           "type": "address"
@@ -473,123 +491,16 @@
     {
       "inputs": [
         {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "destChain",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "depositId",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "uint256",
-              "name": "bridgeFee",
-              "type": "uint256"
-            },
-            {
-              "internalType": "address",
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "depositOutNote",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "depositOutNoteFooter",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "address",
-              "name": "outAssetSource",
-              "type": "address"
-            },
-            {
-              "internalType": "address",
-              "name": "outAssetDest",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "outAmount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "feeRatio",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "inNote",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "inNoteFooter",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "address",
-              "name": "destContractAddress",
-              "type": "address"
-            }
-          ],
-          "internalType": "struct SynaraDarkSwapOnBridgeAssetManager.RetailDepositBridgeCreateOrderArgs",
-          "name": "_args",
-          "type": "tuple"
+          "internalType": "bytes32",
+          "name": "_depositCommitment",
+          "type": "bytes32"
         },
         {
           "components": [
             {
               "internalType": "uint256",
-              "name": "attestationId",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "merklePath",
-              "type": "bytes32[]"
-            },
-            {
-              "internalType": "uint256",
-              "name": "leafCount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "index",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct IZkvHub.AttestationDetails",
-          "name": "_attDetails",
-          "type": "tuple"
-        }
-      ],
-      "name": "retailBridgeCreateOrder",
-      "outputs": [],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
               "name": "destChain",
               "type": "uint256"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "depositId",
-              "type": "bytes32"
             },
             {
               "internalType": "uint256",

@@ -41,7 +41,6 @@ export type RetailBridgeOrderProofParam = BaseProofParam & {
     feeRatio: bigint,
     feeAmount: bigint,
     destChain: number,
-    depositId: string,
     bridgeFeeAmount: bigint,
 }
 
