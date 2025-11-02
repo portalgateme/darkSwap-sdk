@@ -30,13 +30,12 @@ describe('RetailBridgeOrderProof', () => {
             feeRatio: 0n,
             feeAmount: 0n,
             destChain: 31339,
-            depositId: '0x01',
             bridgeFeeAmount: 0n,
             signedMessage: signature,
         });
 
         //save result into json file
-        fs.writeFileSync('./test/proof/synara/retailBridgeOrderProof.json', JSON.stringify(result, null, 2));
+        // fs.writeFileSync('./test/proof/synara/retailBridgeOrderProof.json', JSON.stringify(result, null, 2));
         
     }, 30000);
 }); 
