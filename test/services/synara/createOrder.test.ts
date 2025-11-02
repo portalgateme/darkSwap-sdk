@@ -1,8 +1,7 @@
-import { assert, describe, it } from 'vitest';
-import { BridgeCreateOrderService, NoteOnChainStatus, RetailCancelOrderService, RetailCreateOrderService } from '../../../src';
-import { getNoteOnChainStatusBySignature } from '../../../src/services/noteService';
-import { getAliceSignature, getAliceWallet, getDarkSwapForAlice } from "../../utils/helpers";
 import { keccak256, solidityPackedKeccak256 } from 'ethers';
+import { describe, it } from 'vitest';
+import { BridgeCreateOrderService } from '../../../src';
+import { getAliceSignature, getAliceWallet, getDarkSwapForAlice } from "../../utils/helpers";
 
 describe('RetailCreateOrderService', () => {
     it('should create order', async () => {
@@ -18,7 +17,9 @@ describe('RetailCreateOrderService', () => {
         );
         console.log(canonicalId);
         const darkSwap = getDarkSwapForAlice();
-        const swapOutAmount = 900000000000000000n;
+        const bridgeAmount = 1_000_000_000_000_000_000n;
+        const bridgeFee = bridgeAmount * 200n / 1_000_000n;
+        const swapOutAmount = bridgeAmount - bridgeFee;
         const swapInAsset = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
         const swapInAmount = 2149488000n;
         const bridgeCreateOrderService = new BridgeCreateOrderService(darkSwap, darkSwap);
@@ -26,9 +27,9 @@ describe('RetailCreateOrderService', () => {
             wallet.address,
             31337,
             swapOutAsset,
-            swapOutAmount,
+            bridgeAmount,
             canonicalId,
-            1n,
+            bridgeFee,
             31337,
             swapOutAsset,
             swapOutAmount,

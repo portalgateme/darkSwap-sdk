@@ -451,6 +451,7 @@ export class BridgeCreateOrderService {
       || !context.destChainId
       || !context.sourceAsset
       || context.bridgeFeeAmount === undefined
+      || !context.sourceAmount
       || !context.proof
       || !context.attestationDetails) {
       throw new DarkSwapError('Invalid context');
@@ -465,7 +466,7 @@ export class BridgeCreateOrderService {
       depositOutNoteFooter: context.proof.depositFooter,
       outAssetSource: context.sourceAsset,
       outAssetDest: context.orderNote.address,
-      outAmount: context.orderNote.amount,
+      outAmount: context.sourceAmount,
       feeRatio: context.orderNote.feeRatio,
       inNote: hexlify32(context.swapInNote.note),
       inNoteFooter: context.proof.swapInNoteFooter,
@@ -567,7 +568,7 @@ export class BridgeCreateOrderService {
         context.proof.depositFooter,
         context.sourceAsset,
         context.orderNote.address,
-        hexlify32(context.orderNote.amount),
+        hexlify32(context.sourceAmount),
         hexlify32(context.orderNote.feeRatio),
         hexlify32(context.swapInNote.note),
         context.proof.swapInNoteFooter,
