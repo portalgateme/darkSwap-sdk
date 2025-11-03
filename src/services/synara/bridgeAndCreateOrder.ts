@@ -425,7 +425,7 @@ export class BridgeCreateOrderService {
 
     const callDataHash = ethers.solidityPackedKeccak256(
       ['address', 'bytes'],
-      [this._darkSwapOfSourceChain.contracts.synaraDarkSwapOnBridgeAssetManager, context.callData]
+      [this._darkSwapOfDestChain.contracts.synaraDarkSwapOnBridgeAssetManager, context.callData]
     );
     context.callDataHash = callDataHash;
     const currentNonce = await this.getCurrentNonce(context) as bigint;
@@ -491,7 +491,7 @@ export class BridgeCreateOrderService {
       depositOutNote: hexlify32(context.orderNote.note),
       depositOutNoteFooter: context.proof.depositFooter,
       outAssetSource: context.sourceAsset,
-      outAssetDest: context.orderNote.address,
+      outAssetDest: context.orderNote.asset,
       outAmount: context.orderNote.amount,
       feeRatio: context.orderNote.feeRatio,
       inNote: hexlify32(context.swapInNote.note),
@@ -593,7 +593,7 @@ export class BridgeCreateOrderService {
         hexlify32(context.orderNote.note),
         context.proof.depositFooter,
         context.sourceAsset,
-        context.orderNote.address,
+        context.orderNote.asset,
         hexlify32(context.sourceAmount),
         hexlify32(context.orderNote.feeRatio),
         hexlify32(context.swapInNote.note),
