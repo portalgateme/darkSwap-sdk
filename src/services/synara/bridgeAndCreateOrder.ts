@@ -391,7 +391,6 @@ export class BridgeCreateOrderService {
       || !context.sourceChainId
       || !context.destChainId
       || !context.sourceAsset
-      || !context.sourceAmount
       || context.bridgeFeeAmount === undefined) {
       throw new DarkSwapError('Invalid context');
     }
@@ -423,7 +422,7 @@ export class BridgeCreateOrderService {
         context.canonicalId,
         this._darkSwapOfSourceChain.contracts.synaraDarkSwapOnBridgeAssetManager,
         context.address,
-        hexlify32(context.sourceAmount),
+        hexlify32(context.orderNote.amount),
         hexlify32(context.destChainId),
         hexlify32(context.nonce),
         hexlify32(context.sourceChainId),
@@ -451,7 +450,6 @@ export class BridgeCreateOrderService {
       || !context.destChainId
       || !context.sourceAsset
       || context.bridgeFeeAmount === undefined
-      || !context.sourceAmount
       || !context.proof
       || !context.attestationDetails) {
       throw new DarkSwapError('Invalid context');
@@ -466,7 +464,7 @@ export class BridgeCreateOrderService {
       depositOutNoteFooter: context.proof.depositFooter,
       outAssetSource: context.sourceAsset,
       outAssetDest: context.orderNote.address,
-      outAmount: context.sourceAmount,
+      outAmount: context.orderNote.amount,
       feeRatio: context.orderNote.feeRatio,
       inNote: hexlify32(context.swapInNote.note),
       inNoteFooter: context.proof.swapInNoteFooter,
