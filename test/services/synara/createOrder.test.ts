@@ -1,7 +1,7 @@
 import { keccak256, solidityPackedKeccak256 } from 'ethers';
 import { describe, it } from 'vitest';
 import { BridgeCreateOrderService } from '../../../src';
-import { getAliceSignature, getAliceWallet, getDarkSwapForAlice } from "../../utils/helpers";
+import { getAliceSignature, getAliceWallet, getDarkSwapForAlice, getSourceDarkSwapForAlice } from "../../utils/helpers";
 
 describe('RetailCreateOrderService', () => {
     it('should create order', async () => {
@@ -17,15 +17,16 @@ describe('RetailCreateOrderService', () => {
         );
         console.log(canonicalId);
         const darkSwap = getDarkSwapForAlice();
+        const sourceDarkSwap = getSourceDarkSwapForAlice();
         const bridgeAmount = 1_000_000_000_000_000_000n;
         const bridgeFee = bridgeAmount * 200n / 1_000_000n;
         const swapOutAmount = bridgeAmount - bridgeFee;
         const swapInAsset = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
         const swapInAmount = 2149488000n;
-        const bridgeCreateOrderService = new BridgeCreateOrderService(darkSwap, darkSwap);
+        const bridgeCreateOrderService = new BridgeCreateOrderService(sourceDarkSwap, darkSwap);
         const { context } = await bridgeCreateOrderService.prepare(
             wallet.address,
-            31337,
+            31339,
             swapOutAsset,
             bridgeAmount,
             canonicalId,
