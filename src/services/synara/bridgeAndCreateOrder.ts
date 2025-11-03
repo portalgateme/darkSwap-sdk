@@ -21,6 +21,8 @@ import { legacyTokenConfig } from '../../config';
 import ERC20Abi from '../../abis/IERC20.json';
 import ERC20_USDT from '../../abis/IERC20_USDT.json';
 import SynaraDarkSwapOnBridgeAssetManagerAbi from '../../abis/SynaraDarkSwapOnBridgeAssetManager.json';
+import CanonicalTokenRegistryAbi from '../../abis/CanonicalTokenRegistry.json';
+import BridgeAbi from '../../abis/Bridge.json';
 import { bn_to_0xhex } from '../../utils/formatters';
 import { MAX_ALLOWANCE } from '../../utils/constants';
 
@@ -232,6 +234,24 @@ export class BridgeCreateOrderService {
     this._darkSwapOfDestChain = _darkSwapOfDestChain;
   }
 
+  private async getCanonicalTokenAddress(sourceChainId: number, sourceAsset: string): Promise<string> {
+    const canonicalTokenRegistry = new ethers.Contract(
+      this._darkSwapOfSourceChain.contracts.synaraCanonicalTokenRegistry,
+      CanonicalTokenRegistryAbi.abi,
+      this._darkSwapOfSourceChain.provider,
+    );
+    return await canonicalTokenRegistry.getCanonicalId(BigInt(sourceChainId), sourceAsset);
+  }
+
+  private async getBridgeFee(canonicalId: string, wallet: string, amount: bigint): Promise<bigint> {
+    const bridge = new ethers.Contract(
+      this._darkSwapOfSourceChain.contracts.synaraBridge,
+      BridgeAbi.abi,
+      this._darkSwapOfSourceChain.provider,
+    );
+    return await bridge.getBridgeFee(canonicalId, wallet, amount);
+  }
+
   public async prepare(
     address: string,
     sourceChainId: number,
@@ -248,6 +268,14 @@ export class BridgeCreateOrderService {
   ): Promise<{ context: BridgeCreateOrderContext; swapMessage: DarkSwapMessage }> {
     const [pubKey, privKey] = await generateKeyPair(signature);
     const feeRatio = BigInt(await getFeeRatio(address, this._darkSwapOfDestChain));
+    const canonicalIdFromContract = await this.getCanonicalTokenAddress(sourceChainId, sourceAsset);
+    if (canonicalIdFromContract !== canonicalId) {
+      throw new DarkSwapError('CanonicalId not match');
+    }
+    const bridgeFeeAmountFromContract = await this.getBridgeFee(canonicalId, address, sourceAmount);
+    if (bridgeFeeAmountFromContract !== bridgeFee) {
+      throw new DarkSwapError('BridgeFee not match');
+    }
     const orderNote = createOrderNoteExt(address, depositAsset, depositAmount, feeRatio, pubKey);
     const feeAmount = calcFeeAmount(swapInAmount, feeRatio);
     const realSwapInAmount = swapInAmount - feeAmount

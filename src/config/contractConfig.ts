@@ -10,6 +10,7 @@ export type ContractConfiguartion = {
   darkSwapSubgraphUrl: string;
   synaraDarkSwapOnBridgeAssetManager: string;
   synaraBridge: string;
+  synaraCanonicalTokenRegistry: string;
   zkverifyRelayerUrls: string[];
 };
 
@@ -23,6 +24,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0x0', //FIXME
     synaraDarkSwapOnBridgeAssetManager: '0x0', //FIXME
     synaraBridge: '0x0', //FIXME
+    synaraCanonicalTokenRegistry: '0x0', //FIXME
     zkverifyRelayerUrls: [],//FIXME
     darkSwapSubgraphUrl:
       'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-subgraph/version/v0.0.1/api',
@@ -36,6 +38,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0x0', //FIXME
     synaraDarkSwapOnBridgeAssetManager: '0x0', //FIXME
     synaraBridge: '0x0', //FIXME
+    synaraCanonicalTokenRegistry: '0x0', //FIXME
     zkverifyRelayerUrls: [],//FIXME
     darkSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-arb-subgraph/api'
   },
@@ -48,6 +51,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0x0', //FIXME
     synaraDarkSwapOnBridgeAssetManager: '0x0', //FIXME
     synaraBridge: '0x0', //FIXME
+    synaraCanonicalTokenRegistry: '0x0', //FIXME
     zkverifyRelayerUrls: [],//FIXME
     darkSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-base-subgraph/api'
   },
@@ -60,6 +64,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0x0', //FIXME
     synaraDarkSwapOnBridgeAssetManager: '0x0', //FIXME
     synaraBridge: '0x0', //FIXME
+    synaraCanonicalTokenRegistry: '0x0', //FIXME
     zkverifyRelayerUrls: [],//FIXME
     darkSwapSubgraphUrl: ''
   },
@@ -72,6 +77,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0x8CF86856Bd7dE95b4ba33DCae4cd5Ec02542Bf5b',
     synaraDarkSwapOnBridgeAssetManager: '0x0', //FIXME
     synaraBridge: '0x0', //FIXME
+    synaraCanonicalTokenRegistry: '0x0', //FIXME
     zkverifyRelayerUrls: [],//FIXME
     darkSwapSubgraphUrl: ''
   },
@@ -84,6 +90,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
     synaraDarkSwapOnBridgeAssetManager: '0x0', //FIXME
     synaraBridge: '0x0', //FIXME
+    synaraCanonicalTokenRegistry: '0x0', //FIXME
     zkverifyRelayerUrls: [],//FIXME
     darkSwapSubgraphUrl: 'https://app.dev.portalgate.me:8080/subgraphs/name/singularity/',
   },
@@ -96,6 +103,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
     synaraDarkSwapOnBridgeAssetManager: '0x0', //FIXME
     synaraBridge: '0x0', //FIXME
+    synaraCanonicalTokenRegistry: '0x0', //FIXME
     zkverifyRelayerUrls: [],//FIXME
     darkSwapSubgraphUrl: 'https://app.dev.portalgate.me:8080/subgraphs/name/singularity/',
   }
