@@ -4,6 +4,7 @@ import IERC20ABI from "../../src/abis/IERC20.json";
 
 const PROVIDER_URL = 'https://app.dev.portalgate.me:18545';
 const PROVIDER_HARDHATBASE_URL = 'https://app.dev.portalgate.me:38545';
+const ZKV_RELAYER_URL = 'https://app.dev.portalgate.me:28000';
 // const PROVIDER_URL = 'http://localhost:18544';
 // const PROVIDER_HARDHATBASE_URL = 'http://localhost:38544';
 
@@ -61,7 +62,7 @@ export function getDarkSwapForAlice() {
             synaraDarkSwapOnBridgeAssetManager: '0x05325EF4e7d91153f0Dd0A774D09189b646B9365',
             synaraBridge: '0xbFd1bf336a68442dA3e05Ca4d8d9Afd0D53D25e2',
             synaraCanonicalTokenRegistry: '0x6D490044dC1CA783A22cE1eEb1E4443fa16A961c',
-            zkverifyRelayerUrls: ["http://localhost:8000"],
+            zkverifyRelayerUrls: [ZKV_RELAYER_URL],
         }
     );
 }
@@ -82,7 +83,7 @@ export function getSourceDarkSwapForAlice() {
             synaraDarkSwapOnBridgeAssetManager: '0x16a8351d70e28f84746706A2b046c8fbA9b4830e',
             synaraBridge: '0xE4567290Cb6bC0440FDEA6816cAAC3f1C770F2FD',
             synaraCanonicalTokenRegistry: '0xb40b90c8B8653C3C2e9DF5c764C2f9bB3Efc49F9',
-            zkverifyRelayerUrls: ["http://localhost:8000"],
+            zkverifyRelayerUrls: [ZKV_RELAYER_URL],
         }
     );
 }
@@ -103,7 +104,7 @@ export function getDarkSwapForBob() {
             synaraDarkSwapOnBridgeAssetManager: '0x05325EF4e7d91153f0Dd0A774D09189b646B9365',
             synaraBridge: '0xbFd1bf336a68442dA3e05Ca4d8d9Afd0D53D25e2',
             synaraCanonicalTokenRegistry: '0x0000000000000000000000000000000000000000',
-            zkverifyRelayerUrls: ["http://localhost:8000"],
+            zkverifyRelayerUrls: [ZKV_RELAYER_URL],
         }
     );
 }
