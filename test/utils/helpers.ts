@@ -4,7 +4,8 @@ import IERC20ABI from "../../src/abis/IERC20.json";
 
 const PROVIDER_URL = 'https://app.dev.portalgate.me:18545';
 const PROVIDER_HARDHATBASE_URL = 'https://app.dev.portalgate.me:38545';
-const ZKV_RELAYER_URL = 'https://app.dev.portalgate.me:28000';
+// const ZKV_RELAYER_URL = 'https://app.dev.portalgate.me:28000';
+const ZKV_RELAYER_URL = 'http://localhost:8000';
 // const PROVIDER_URL = 'http://localhost:18544';
 // const PROVIDER_HARDHATBASE_URL = 'http://localhost:38544';
 
@@ -51,6 +52,7 @@ export function getDarkSwapForAlice() {
     return new DarkSwap(
         wallet,
         31337,
+        wallet.provider!,
         {
             priceOracle: '0x0000000000000000000000000000000000000000',
             ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
@@ -72,6 +74,7 @@ export function getSourceDarkSwapForAlice() {
     return new DarkSwap(
         wallet,
         31339,
+        wallet.provider!,
         {
             priceOracle: '0x0000000000000000000000000000000000000000',
             ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
@@ -93,6 +96,7 @@ export function getDarkSwapForBob() {
     return new DarkSwap(
         wallet,
         31337,
+        wallet.provider!,
         {
             priceOracle: '0x0000000000000000000000000000000000000000',
             ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
