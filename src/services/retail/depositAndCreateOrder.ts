@@ -151,7 +151,7 @@ export class RetailCreateOrderService extends BaseContractService {
         legacyTokenConfig[this._darkSwap.chainId].includes(asset.toLowerCase());
       const contract = new ethers.Contract(asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
       const tx = await contract.approve(this._darkSwap.contracts.darkSwapAssetManager, hexlify32(MAX_ALLOWANCE));
-      await this._darkSwap.provider.waitForTransaction(tx.hash, 2);
+      await tx.wait();
     }
   }
 
