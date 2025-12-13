@@ -3,7 +3,7 @@ import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
-import { createNote, createOrderNoteExt } from '../../proof/noteService';
+import { createNote, createOrderNoteExt, validateOrderNoteWithPubKey } from '../../proof/noteService';
 import { generateRetailCreateOrderProof, generateRetailSwapMessage, RetailCreateOrderProofResult } from '../../proof/retail/depositOrderProof';
 import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
@@ -73,6 +73,21 @@ export class RetailCreateOrderService extends BaseContractService {
     super(_darkSwap);
   }
 
+  public async rebuildContextFromSwapMessage(swapMessage: DarkSwapMessage, signature: string) {
+    const [pubKey] = await generateKeyPair(signature);
+    //validate the swapMessage is by this signature
+    if(!validateOrderNoteWithPubKey(swapMessage.orderNote, pubKey)) {
+      throw new DarkSwapError('SwapMessage does not belong to this wallet');
+    }
+    const context = new RetailCreateOrderContext(signature);
+    context.orderNote = swapMessage.orderNote;
+    context.swapInNote = swapMessage.inNote;
+    context.feeAmount = swapMessage.feeAmount;
+    context.address = swapMessage.address;
+    await this.generateProof(context);
+    return context;
+  }
+
   public async prepare(
     address: string,
     depositAsset: string,
@@ -136,7 +151,7 @@ export class RetailCreateOrderService extends BaseContractService {
         legacyTokenConfig[this._darkSwap.chainId].includes(asset.toLowerCase());
       const contract = new ethers.Contract(asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
       const tx = await contract.approve(this._darkSwap.contracts.darkSwapAssetManager, hexlify32(MAX_ALLOWANCE));
-      await tx.wait();
+      await this._darkSwap.provider.waitForTransaction(tx.hash, 2);
     }
   }
 
