@@ -73,3 +73,9 @@ export async function getNullifierBySignature(note: DarkSwapNote, signature: str
   const [publicKey] = await generateKeyPair(signature);
   return hexlify32(calcNullifier(note.rho, publicKey));
 }
+
+export async function isNoteCreated(darkSwap: DarkSwap, note: bigint) {
+  const contract = getContract(darkSwap.contracts.merkleTreeOperator, darkSwap);
+  const isNotCreated = (await contract.noteIsNotCreated(hexlify32(note))) as boolean;
+  return !isNotCreated;
+}

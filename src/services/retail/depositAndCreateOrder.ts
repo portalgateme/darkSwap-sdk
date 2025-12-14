@@ -133,9 +133,12 @@ export class RetailCreateOrderService extends BaseContractService {
     context.proof = proof;
   }
 
-  protected async allowance(context: RetailCreateOrderContext) {
+  public async allowance(context: RetailCreateOrderContext) {
     if (!context || !context.orderNote || !context.address || !context.signature || !context.proof) {
       throw new DarkSwapError('Invalid context');
+    }
+    if (isNativeAsset(context.orderNote.asset)) {
+      return;
     }
     const signer = this._darkSwap.signer;
     const asset = context.orderNote.asset;
