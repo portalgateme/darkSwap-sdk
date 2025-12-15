@@ -133,9 +133,12 @@ export class RetailCreateOrderService extends BaseContractService {
     context.proof = proof;
   }
 
-  protected async allowance(context: RetailCreateOrderContext) {
+  public async allowance(context: RetailCreateOrderContext) {
     if (!context || !context.orderNote || !context.address || !context.signature || !context.proof) {
       throw new DarkSwapError('Invalid context');
+    }
+    if (isNativeAsset(context.orderNote.asset)) {
+      return;
     }
     const signer = this._darkSwap.signer;
     const asset = context.orderNote.asset;
@@ -151,7 +154,7 @@ export class RetailCreateOrderService extends BaseContractService {
         legacyTokenConfig[this._darkSwap.chainId].includes(asset.toLowerCase());
       const contract = new ethers.Contract(asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
       const tx = await contract.approve(this._darkSwap.contracts.darkSwapAssetManager, hexlify32(MAX_ALLOWANCE));
-      await this._darkSwap.provider.waitForTransaction(tx.hash, 2);
+      await tx.wait();
     }
   }
 
