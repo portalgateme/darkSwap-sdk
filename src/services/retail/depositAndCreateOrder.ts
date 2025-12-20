@@ -11,7 +11,7 @@ import { calcFeeAmount, getFeeRatio } from '../feeRatioService';
 import { hexlify32 } from '../../utils/util';
 import { bn_to_0xhex } from '../../utils/formatters';
 import { isNativeAsset } from '../../utils/util';
-import { legacyTokenConfig } from '../../config';
+import { getConfirmations, legacyTokenConfig } from '../../config';
 import { MAX_ALLOWANCE } from '../../utils/constants';
 import ERC20Abi from '../../abis/IERC20.json';
 import ERC20_USDT from '../../abis/IERC20_USDT.json';
@@ -154,7 +154,7 @@ export class RetailCreateOrderService extends BaseContractService {
         legacyTokenConfig[this._darkSwap.chainId].includes(asset.toLowerCase());
       const contract = new ethers.Contract(asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
       const tx = await contract.approve(this._darkSwap.contracts.darkSwapAssetManager, hexlify32(MAX_ALLOWANCE));
-      await tx.wait();
+      await tx.wait(getConfirmations(this._darkSwap.chainId));
     }
   }
 
