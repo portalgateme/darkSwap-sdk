@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import ERC20Abi from '../../abis/IERC20.json';
 import ERC20_USDT from '../../abis/IERC20_USDT.json';
-import { legacyTokenConfig } from '../../config/config';
+import { getConfirmations, legacyTokenConfig } from '../../config/config';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { DepositProofResult, generateDepositProof } from '../../proof/basic/depositProof';
@@ -183,7 +183,7 @@ export class DepositService extends BaseContractService {
         legacyTokenConfig[this._darkSwap.chainId].includes(context.newBalance.asset.toLowerCase());
       const contract = new ethers.Contract(context.newBalance.asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
       const tx = await contract.approve(this._darkSwap.contracts.darkSwapAssetManager, hexlify32(MAX_ALLOWANCE));
-      await tx.wait();
+      await tx.wait(getConfirmations(this._darkSwap.chainId));
     }
   }
 }
