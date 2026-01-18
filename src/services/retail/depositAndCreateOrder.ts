@@ -3,7 +3,7 @@ import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
-import { createNote, createOrderNoteExt } from '../../proof/noteService';
+import { createNote, createOrderNoteExt, validateOrderNoteWithPubKey } from '../../proof/noteService';
 import { generateRetailCreateOrderProof, generateRetailSwapMessage, RetailCreateOrderProofResult } from '../../proof/retail/depositOrderProof';
 import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
@@ -11,7 +11,7 @@ import { calcFeeAmount, getFeeRatio } from '../feeRatioService';
 import { hexlify32 } from '../../utils/util';
 import { bn_to_0xhex } from '../../utils/formatters';
 import { isNativeAsset } from '../../utils/util';
-import { legacyTokenConfig } from '../../config';
+import { getConfirmations, legacyTokenConfig } from '../../config';
 import { MAX_ALLOWANCE } from '../../utils/constants';
 import ERC20Abi from '../../abis/IERC20.json';
 import ERC20_USDT from '../../abis/IERC20_USDT.json';
@@ -73,6 +73,21 @@ export class RetailCreateOrderService extends BaseContractService {
     super(_darkSwap);
   }
 
+  public async rebuildContextFromSwapMessage(swapMessage: DarkSwapMessage, signature: string) {
+    const [pubKey] = await generateKeyPair(signature);
+    //validate the swapMessage is by this signature
+    if(!validateOrderNoteWithPubKey(swapMessage.orderNote, pubKey)) {
+      throw new DarkSwapError('SwapMessage does not belong to this wallet');
+    }
+    const context = new RetailCreateOrderContext(signature);
+    context.orderNote = swapMessage.orderNote;
+    context.swapInNote = swapMessage.inNote;
+    context.feeAmount = swapMessage.feeAmount;
+    context.address = swapMessage.address;
+    await this.generateProof(context);
+    return context;
+  }
+
   public async prepare(
     address: string,
     depositAsset: string,
@@ -118,9 +133,12 @@ export class RetailCreateOrderService extends BaseContractService {
     context.proof = proof;
   }
 
-  protected async allowance(context: RetailCreateOrderContext) {
+  public async allowance(context: RetailCreateOrderContext) {
     if (!context || !context.orderNote || !context.address || !context.signature || !context.proof) {
       throw new DarkSwapError('Invalid context');
+    }
+    if (isNativeAsset(context.orderNote.asset)) {
+      return;
     }
     const signer = this._darkSwap.signer;
     const asset = context.orderNote.asset;
@@ -136,7 +154,7 @@ export class RetailCreateOrderService extends BaseContractService {
         legacyTokenConfig[this._darkSwap.chainId].includes(asset.toLowerCase());
       const contract = new ethers.Contract(asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
       const tx = await contract.approve(this._darkSwap.contracts.darkSwapAssetManager, hexlify32(MAX_ALLOWANCE));
-      await tx.wait();
+      await tx.wait(getConfirmations(this._darkSwap.chainId));
     }
   }
 

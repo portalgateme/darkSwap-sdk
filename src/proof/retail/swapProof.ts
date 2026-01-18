@@ -1,5 +1,5 @@
 import retailSwapCircuit from "../../circuits/retail/dark_swap_retail_swap_compiled_circuit.json";
-import { BaseProofResult, DarkSwapMessage, DarkSwapProofError, FEE_RATIO_PRECISION } from "../../types";
+import { BaseProofResult, DarkSwapMessage, DarkSwapProofError } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex } from "../../utils/formatters";
 import { hexStringToSignature, uint8ArrayToNumberArray } from "../../utils/proofUtils";
@@ -90,13 +90,10 @@ export async function generateRetailSwapProof(param: RetailSwapProofParam): Prom
         throw new DarkSwapProofError("Invalid note amount");
     }
 
-    if (param.aliceMessage.orderNote.amount != param.bobMessage.inNote.amount
-        || param.bobMessage.orderNote.amount != param.aliceMessage.inNote.amount) {
+    if (param.aliceMessage.orderNote.amount != param.bobMessage.inNote.amount + param.bobMessage.feeAmount
+        || param.bobMessage.orderNote.amount != param.aliceMessage.inNote.amount + param.aliceMessage.feeAmount) {
         throw new DarkSwapProofError("Invalid order amount");
     }
-
-    const aliceFeeAmount = param.aliceMessage.inNote.amount * param.aliceMessage.orderNote.feeRatio / FEE_RATIO_PRECISION;
-    const bobFeeAmount = param.bobMessage.inNote.amount * param.bobMessage.orderNote.feeRatio / FEE_RATIO_PRECISION;
 
     const aliceOrderNoteNullifier = calcNullifier(param.aliceMessage.orderNote.rho, param.aliceMessage.publicKey);
     const aliceInNoteFooter = getNoteFooter(param.aliceMessage.inNote.rho, param.aliceMessage.publicKey);
@@ -119,11 +116,11 @@ export async function generateRetailSwapProof(param: RetailSwapProofParam): Prom
         alice_out_note: bn_to_0xhex(param.aliceMessage.orderNote.note),
         alice_out_nullifier: bn_to_0xhex(aliceOrderNoteNullifier),
         alice_fee_ratio: bn_to_0xhex(param.aliceMessage.orderNote.feeRatio),
-        alice_fee_amount: bn_to_0xhex(aliceFeeAmount),
+        alice_fee_amount: bn_to_0xhex(param.aliceMessage.feeAmount),
 
         alice_in_rho: bn_to_0xhex(param.aliceMessage.inNote.rho),
         alice_in_asset: bn_to_0xhex(encodeAddress(param.aliceMessage.inNote.asset)),
-        alice_in_amount: bn_to_0xhex(param.aliceMessage.inNote.amount),
+        alice_in_amount: bn_to_0xhex(param.aliceMessage.inNote.amount + param.aliceMessage.feeAmount),
         alice_in_note: bn_to_0xhex(param.aliceMessage.inNote.note),
         alice_in_note_footer: bn_to_0xhex(aliceInNoteFooter),
 
@@ -138,7 +135,7 @@ export async function generateRetailSwapProof(param: RetailSwapProofParam): Prom
         bob_out_rho: bn_to_0xhex(param.bobMessage.orderNote.rho),
         bob_out_nullifier: bn_to_0xhex(bobOrderNoteNullifier),
         bob_fee_ratio: bn_to_0xhex(param.bobMessage.orderNote.feeRatio),
-        bob_fee_amount: bn_to_0xhex(bobFeeAmount),
+        bob_fee_amount: bn_to_0xhex(param.bobMessage.feeAmount),
 
         bob_in_note: bn_to_0xhex(param.bobMessage.inNote.note),
         bob_in_rho: bn_to_0xhex(param.bobMessage.inNote.rho),
