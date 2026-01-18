@@ -11,12 +11,13 @@ export class DarkSwap {
   constructor(
     signer: ethers.Signer,
     chainId: number,
+    provider?: ethers.Provider,
     contracts?: ContractConfiguartion,
   ) {
     // @ts-ignore
     this.signer = signer;
     // @ts-ignore
-    this.provider = signer.provider;
+    this.provider = provider || signer.provider;
     this.chainId = chainId;
     if (contracts) {
       this.contracts = contracts;
