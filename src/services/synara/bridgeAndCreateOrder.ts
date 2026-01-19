@@ -234,13 +234,13 @@ export class BridgeCreateOrderService {
     this._darkSwapOfDestChain = _darkSwapOfDestChain;
   }
 
-  private async getCanonicalTokenAddress(sourceChainId: number, sourceAsset: string): Promise<string> {
+  private async getCanonicalTokenAddress(sourceAsset: string): Promise<string> {
     const canonicalTokenRegistry = new ethers.Contract(
       this._darkSwapOfSourceChain.contracts.synaraCanonicalTokenRegistry,
-      CanonicalTokenRegistryAbi.abi,
+      CanonicalTokenRegistryAbi,
       this._darkSwapOfSourceChain.provider,
     );
-    return await canonicalTokenRegistry.getCanonicalId(BigInt(sourceChainId), sourceAsset);
+    return await canonicalTokenRegistry.getCanonicalId(sourceAsset);
   }
 
   private async getBridgeFee(canonicalId: string, wallet: string, amount: bigint): Promise<bigint> {
@@ -268,7 +268,7 @@ export class BridgeCreateOrderService {
   ): Promise<{ context: BridgeCreateOrderContext; swapMessage: DarkSwapMessage }> {
     const [pubKey, privKey] = await generateKeyPair(signature);
     const feeRatio = BigInt(await getFeeRatio(address, this._darkSwapOfDestChain));
-    const canonicalIdFromContract = await this.getCanonicalTokenAddress(sourceChainId, sourceAsset);
+    const canonicalIdFromContract = await this.getCanonicalTokenAddress(sourceAsset);
     if (canonicalIdFromContract !== canonicalId) {
       throw new DarkSwapError('CanonicalId not match');
     }
