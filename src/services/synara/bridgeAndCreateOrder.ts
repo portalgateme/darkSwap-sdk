@@ -535,14 +535,14 @@ export class BridgeCreateOrderService {
     const allowanceContract = new ethers.Contract(asset, ERC20Abi.abi, this._darkSwapOfSourceChain);
     const allowance = await allowanceContract.allowance(
       signer.getAddress(),
-      this._darkSwapOfSourceChain.contracts.darkSwapAssetManager
+      this._darkSwapOfSourceChain.contracts.synaraDarkSwapOnBridgeAssetManager
     );
     if (BigInt(allowance) < amount) {
       const isLegacy =
         legacyTokenConfig.hasOwnProperty(this._darkSwapOfSourceChain.chainId) &&
         legacyTokenConfig[this._darkSwapOfSourceChain.chainId].includes(asset.toLowerCase());
       const contract = new ethers.Contract(asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
-      const tx = await contract.approve(this._darkSwapOfSourceChain.contracts.darkSwapAssetManager, hexlify32(MAX_ALLOWANCE));
+      const tx = await contract.approve(this._darkSwapOfSourceChain.contracts.synaraDarkSwapOnBridgeAssetManager, hexlify32(MAX_ALLOWANCE));
       await tx.wait();
     }
   }
