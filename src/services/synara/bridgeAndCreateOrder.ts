@@ -526,12 +526,17 @@ export class BridgeCreateOrderService {
   }
 
   protected async allowance(context: BridgeCreateOrderContext) {
-    if (!context || !context.orderNote || !context.address || !context.signature || !context.proof) {
+    if (!context 
+      || !context.address 
+      || !context.signature 
+      || !context.proof 
+      || !context.sourceAsset 
+      || context.sourceAmount === undefined) {
       throw new DarkSwapError('Invalid context');
     }
     const signer = this._darkSwapOfSourceChain.signer;
-    const asset = context.orderNote.asset;
-    const amount = context.orderNote.amount;
+    const asset = context.sourceAsset;
+    const amount = context.sourceAmount;
     const allowanceContract = new ethers.Contract(asset, ERC20Abi.abi, this._darkSwapOfSourceChain);
     const allowance = await allowanceContract.allowance(
       signer.getAddress(),
