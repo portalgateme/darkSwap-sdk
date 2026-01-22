@@ -1,4 +1,4 @@
-import depositCircuit from "../../circuits/pro/dark_swap_deposit_compiled_circuit.json";
+import depositCircuit from "../../circuits/pro/dark_swap_pro_deposit_compiled_circuit.json";
 import { BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapProofError, EMPTY_NULLIFIER, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";

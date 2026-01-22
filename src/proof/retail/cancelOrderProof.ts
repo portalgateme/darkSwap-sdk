@@ -1,4 +1,4 @@
-import retailCancelOrderCircuit from "../../circuits/retail/dark_swap_cancel_order_withdraw_compiled_circuit.json";
+import retailCancelOrderCircuit from "../../circuits/retail/dark_swap_retail_cancel_order_withdraw_compiled_circuit.json";
 import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapOrderNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";

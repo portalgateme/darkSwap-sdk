@@ -1,4 +1,4 @@
-import tripleJoinCircuit from "../../circuits/pro/dark_swap_triple_join_compiled_circuit.json";
+import tripleJoinCircuit from "../../circuits/pro/dark_swap_pro_triple_join_compiled_circuit.json";
 import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";

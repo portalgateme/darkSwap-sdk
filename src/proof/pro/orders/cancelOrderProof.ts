@@ -1,4 +1,4 @@
-import proCancelOrderCircuit from "../../../circuits/pro/dark_swap_cancel_order_compiled_circuit.json";
+import proCancelOrderCircuit from "../../../circuits/pro/dark_swap_pro_cancel_order_compiled_circuit.json";
 import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, EMPTY_NULLIFIER, PROOF_DOMAIN } from "../../../types";
 import { encodeAddress } from "../../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../../utils/formatters";

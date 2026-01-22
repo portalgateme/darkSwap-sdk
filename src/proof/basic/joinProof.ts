@@ -1,4 +1,4 @@
-import joinCircuit from "../../circuits/pro/dark_swap_join_compiled_circuit.json";
+import joinCircuit from "../../circuits/pro/dark_swap_pro_join_compiled_circuit.json";
 import { BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";

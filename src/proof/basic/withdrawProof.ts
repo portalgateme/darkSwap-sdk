@@ -1,4 +1,4 @@
-import withdrawCircuit from "../../circuits/pro/dark_swap_withdraw_compiled_circuit.json";
+import withdrawCircuit from "../../circuits/pro/dark_swap_pro_withdraw_compiled_circuit.json";
 import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapNote, DarkSwapProofError, EMPTY_FOOTER, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";
