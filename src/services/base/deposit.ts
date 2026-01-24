@@ -13,7 +13,6 @@ import { MAX_ALLOWANCE } from '../../utils/constants';
 import { hexlify32, isNativeAsset } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { EMPTY_PATH, getMerklePathAndRoot } from '../merkletree';
-import { refineGasLimit } from '../../utils/gasUtil';
 
 export class DepositContext extends BaseContext {
   private _currentBalance?: DarkSwapNote;
@@ -133,14 +132,9 @@ export class DepositService extends BaseContractService {
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
         context.proof.proof];
-      const estimatedGas = await contract.proDeposit.estimateGas(
-        ...depositArgs,
-        { value: 0n }
-      );
-      const gasLimit = refineGasLimit(estimatedGas);
       const tx = await contract.proDeposit(
         ...depositArgs,
-        { value: 0n, gasLimit }
+        { value: 0n }
       );
       await tx.wait();
       return tx.hash;
@@ -154,13 +148,9 @@ export class DepositService extends BaseContractService {
         context.proof.newBalanceFooter,
         context.proof.proof
       ];
-      const estimatedGas = await contract.proDeposit.estimateGas(
-        ...depositArgs,
-        { value: context.depositAmount }
-      );
       const tx = await contract.proDeposit(
         ...depositArgs,
-        { value: context.depositAmount, gasLimit: refineGasLimit(estimatedGas) }
+        { value: context.depositAmount}
       );
       await tx.wait();
       return tx.hash;
