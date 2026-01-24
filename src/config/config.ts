@@ -10,6 +10,8 @@ const confirmationsConfig: { [chainId: number]: number } = {
   [ChainId.ARBITRUM_ONE]: 3,
   [ChainId.BASE]: 3,
   [ChainId.SEPOLIA]: 3,
+  [ChainId.BASE_SEPOLIA]: 3,
+  [ChainId.HORIZEN_TESTNET]: 3,
   [ChainId.HARDHAT]: 3,
 }
 

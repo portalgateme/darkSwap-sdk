@@ -78,12 +78,12 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     priceOracle: '0x54c375f28ce4B0c2B986D6256E4Bc75d242A8793',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
-    merkleTreeOperator: '0x8Cd4061C8b3743810B811E1F4A0B597D79225f4E',
-    darkSwapAssetManager: '0xEBeD6c7C2189bf8ad6687D3A4cf4b83fB4D1a3D2',
-    darkSwapFeeAssetManager: '0x8CF86856Bd7dE95b4ba33DCae4cd5Ec02542Bf5b',
-    synaraDarkSwapOnBridgeAssetManager: '0x0', //FIXME
-    synaraBridge: '0x0', //FIXME
-    synaraCanonicalTokenRegistry: '0x0', //FIXME
+    merkleTreeOperator: '0xF99969B1Cb7255e8F14741eAFEEdC767e743899a',
+    darkSwapAssetManager: '0x25b6A08F81926a918ea0Bb0a0e8Acb4971fAc379',
+    darkSwapFeeAssetManager: '0x82751BEe64a937085D842573358Cb8b375A57377',
+    synaraDarkSwapOnBridgeAssetManager: '0x66F654Fc33BB9B53d686d060f98bd7030283cC34',
+    synaraBridge: '0x9D4746F8f2364da04fF47d729072F71b742726aA',
+    synaraCanonicalTokenRegistry: '0xf7C40b5057a1D1a3d58B02BCdb125E63ef380564',
     zkverifyRelayerUrls: [],//FIXME
   },
   [ChainId.HARDHAT]: {
