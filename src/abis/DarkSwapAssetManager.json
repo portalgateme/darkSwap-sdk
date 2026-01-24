@@ -12,11 +12,6 @@
         },
         {
           "internalType": "address",
-          "name": "assetPoolERC721",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
           "name": "assetPoolETH",
           "type": "address"
         },
@@ -156,88 +151,7 @@
           "type": "bytes32"
         }
       ],
-      "name": "DarkSwapCancelOrder",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "nullifier",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "asset",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "DarkSwapCancelOrderWithdraw",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "depositor",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "noteOut",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "asset",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "DarkSwapDeposit",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "bytes32[3]",
-          "name": "nullifierIn",
-          "type": "bytes32[3]"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "noteOut1",
-          "type": "bytes32"
-        }
-      ],
-      "name": "DarkSwapJoin",
+      "name": "DarkSwapProCancelOrder",
       "type": "event"
     },
     {
@@ -281,6 +195,87 @@
         }
       ],
       "name": "DarkSwapProCreateOrder",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "depositor",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "noteOut",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "asset",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "DarkSwapProDeposit",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32[3]",
+          "name": "nullifierIn",
+          "type": "bytes32[3]"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "noteOut1",
+          "type": "bytes32"
+        }
+      ],
+      "name": "DarkSwapProJoin",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32[2]",
+          "name": "nullifierIn1",
+          "type": "bytes32[2]"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32[2]",
+          "name": "nullifierIn2",
+          "type": "bytes32[2]"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "noteOut1",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "noteOut2",
+          "type": "bytes32"
+        }
+      ],
+      "name": "DarkSwapProPairJoin",
       "type": "event"
     },
     {
@@ -336,6 +331,74 @@
         }
       ],
       "name": "DarkSwapProSwap",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "nullifierIn",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "asset",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "noteRemaining",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        }
+      ],
+      "name": "DarkSwapProWithdraw",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "nullifier",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "asset",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "DarkSwapRetailCancelOrderWithdraw",
       "type": "event"
     },
     {
@@ -422,43 +485,6 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "nullifierIn",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "asset",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "noteRemaining",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        }
-      ],
-      "name": "DarkSwapWithdraw",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
           "indexed": true,
           "internalType": "address",
           "name": "previousOwner",
@@ -514,135 +540,8 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "_merkeleRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_orderNullifier",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_remainingNullifier",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_accountNote",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_accountNoteFooter",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "_proof",
-          "type": "bytes"
-        }
-      ],
-      "name": "cancelOrder",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "_merkleRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
-          "name": "_asset",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_nullifier",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "_proof",
-          "type": "bytes"
-        }
-      ],
-      "name": "cancelOrderWithdraw",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "_merkleRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
-          "name": "_asset",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_existingNullifier",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_accountNoteCommitment",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_accountNoteFooter",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "_proof",
-          "type": "bytes"
-        }
-      ],
-      "name": "deposit",
-      "outputs": [],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "getAssetPoolERC20",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getAssetPoolERC721",
       "outputs": [
         {
           "internalType": "address",
@@ -774,6 +673,99 @@
               "type": "bytes32"
             },
             {
+              "internalType": "bytes32[2]",
+              "name": "nullifierIn1",
+              "type": "bytes32[2]"
+            },
+            {
+              "internalType": "bytes32[2]",
+              "name": "nullifierIn2",
+              "type": "bytes32[2]"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "noteOut1",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "noteOut2",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "noteFooter1",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "noteFooter2",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct DarkSwapAssetManager.ProPairJoinArgs",
+          "name": "_args",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "pairJoin",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_merkeleRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_orderNullifier",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_remainingNullifier",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_accountNote",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_accountNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "proCancelOrder",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "merkleRoot",
+              "type": "bytes32"
+            },
+            {
               "internalType": "bytes32",
               "name": "outNullifier",
               "type": "bytes32"
@@ -812,6 +804,49 @@
       "name": "proCreateOrder",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_merkleRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "_asset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_existingNullifier",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_accountNoteCommitment",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_accountNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "proDeposit",
+      "outputs": [],
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -892,6 +927,49 @@
     {
       "inputs": [
         {
+          "internalType": "bytes32",
+          "name": "_merkleRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "_asset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_nullifier",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_remainingNoteCommitment",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_remainingNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "proWithdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "address",
           "name": "asset",
           "type": "address"
@@ -910,6 +988,39 @@
     {
       "inputs": [],
       "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_merkleRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "_asset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_nullifier",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "retailCancelOrderWithdraw",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -975,7 +1086,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "aliceFeeRation",
+              "name": "aliceFeeRatio",
               "type": "uint256"
             },
             {
@@ -995,7 +1106,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "bobFeeRation",
+              "name": "bobFeeRatio",
               "type": "uint256"
             },
             {
@@ -1038,19 +1149,6 @@
         }
       ],
       "name": "setAssetPoolERC20",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "assetPoolERC721",
-          "type": "address"
-        }
-      ],
-      "name": "setAssetPoolERC721",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1103,49 +1201,6 @@
         }
       ],
       "name": "transferOwnership",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "_merkleRoot",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
-          "name": "_asset",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_nullifier",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_remainingNoteCommitment",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_remainingNoteFooter",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "_proof",
-          "type": "bytes"
-        }
-      ],
-      "name": "withdraw",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

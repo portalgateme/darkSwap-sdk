@@ -82,7 +82,7 @@ export class RetailCancelOrderService extends BaseContractService {
       DarkSwapAssetManagerAbi.abi,
       this._darkSwap.signer
     );
-    const tx = await contract.cancelOrderWithdraw(
+    const tx = await contract.retailCancelOrderWithdraw(
       context.merkleRoot,
       context.orderNote.asset,
       hexlify32(context.orderNote.amount),

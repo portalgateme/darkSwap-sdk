@@ -108,7 +108,7 @@ export class WithdrawService extends BaseContractService {
       this._darkSwap.signer
     );
 
-    const tx = await contract.withdraw(
+    const tx = await contract.proWithdraw(
       context.merkleRoot,
       context.currentBalance.asset,
       context.withdrawAmount,

@@ -154,11 +154,11 @@ export class DepositService extends BaseContractService {
         context.proof.newBalanceFooter,
         context.proof.proof
       ];
-      const estimatedGas = await contract.deposit.estimateGas(
+      const estimatedGas = await contract.proDeposit.estimateGas(
         ...depositArgs,
         { value: context.depositAmount }
       );
-      const tx = await contract.deposit(
+      const tx = await contract.proDeposit(
         ...depositArgs,
         { value: context.depositAmount, gasLimit: refineGasLimit(estimatedGas) }
       );
