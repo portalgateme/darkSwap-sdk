@@ -133,12 +133,12 @@ export class DepositService extends BaseContractService {
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
         context.proof.proof];
-      const estimatedGas = await contract.deposit.estimateGas(
+      const estimatedGas = await contract.proDeposit.estimateGas(
         ...depositArgs,
         { value: 0n }
       );
       const gasLimit = refineGasLimit(estimatedGas);
-      const tx = await contract.deposit(
+      const tx = await contract.proDeposit(
         ...depositArgs,
         { value: 0n, gasLimit }
       );
