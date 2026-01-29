@@ -5,6 +5,7 @@ export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
     return JSON.stringify({
         address: swapMessage.address,
         orderNote: {
+            address: swapMessage.orderNote.address,
             rho: swapMessage.orderNote.rho.toString(),
             amount: swapMessage.orderNote.amount.toString(),
             asset: swapMessage.orderNote.asset,
@@ -13,6 +14,7 @@ export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
         },
         orderNullifier: swapMessage.orderNullifier,
         inNote: {
+            address: swapMessage.inNote.address,
             rho: swapMessage.inNote.rho.toString(),
             amount: swapMessage.inNote.amount.toString(),
             asset: swapMessage.inNote.asset,
@@ -33,7 +35,7 @@ export function deserializeDarkSwapMessage(serializedMessage: string): DarkSwapM
     return {
         address: message.address,
         orderNote: {
-            address: message.orderNote.address,
+            address: message.orderNote.address || message.address,
             rho: BigInt(message.orderNote.rho),
             amount: BigInt(message.orderNote.amount),
             asset: message.orderNote.asset,
@@ -42,7 +44,7 @@ export function deserializeDarkSwapMessage(serializedMessage: string): DarkSwapM
         },
         feeAmount: BigInt(message.feeAmount),
         inNote: {
-            address: message.inNote.address,
+            address: message.inNote.address || message.address,
             rho: BigInt(message.inNote.rho),
             amount: BigInt(message.inNote.amount),
             asset: message.inNote.asset,
