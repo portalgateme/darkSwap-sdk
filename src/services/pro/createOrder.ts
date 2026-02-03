@@ -174,7 +174,8 @@ export class ProCreateOrderService extends BaseContractService {
       hexlify32(context.newBalance.note),
       context.proof.newBalanceFooter,
       hexlify32(context.orderNote.note),
-      context.proof.orderNoteFooter
+      context.proof.orderNoteFooter,
+      []
     ];
 
     const estimatedGas = await contract.proCreateOrder.estimateGas(

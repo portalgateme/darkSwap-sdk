@@ -29,7 +29,7 @@ export async function getBobSignature() {
 export async function getAliceWalletBalance(asset: string) {
     const wallet = getAliceWallet();
     const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
-    if(asset === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE') {
+    if (asset === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE') {
         return await provider.getBalance(wallet.address);
     } else {
         const contract = new ethers.Contract(asset, IERC20ABI.abi, provider);
@@ -46,10 +46,9 @@ export function getDarkSwapForAlice() {
             priceOracle: '0x0000000000000000000000000000000000000000',
             ethAddress: '0x0000000000000000000000000000000000000000',
             nativeWrapper: '0x0000000000000000000000000000000000000000',
-            merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
-            darkSwapAssetManager: '0x6D39d71fF4ab56a4873febd34e1a3BDefc01b41e',
-            darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
-            drakSwapSubgraphUrl: '',
+            merkleTreeOperator: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+            darkSwapAssetManager: '0x4A679253410272dd5232B3Ff7cF5dbB88f295319',
+            darkSwapFeeAssetManager: '0xc6e7DF5E7b4f2A278906862b61205850344D4e7d'
         }
     );
 }
@@ -63,10 +62,9 @@ export function getDarkSwapForBob() {
             priceOracle: '0x0000000000000000000000000000000000000000',
             ethAddress: '0x0000000000000000000000000000000000000000',
             nativeWrapper: '0x0000000000000000000000000000000000000000',
-            merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
-            darkSwapAssetManager: '0x6D39d71fF4ab56a4873febd34e1a3BDefc01b41e',
-            darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
-            drakSwapSubgraphUrl: '',
+            merkleTreeOperator: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+            darkSwapAssetManager: '0x4A679253410272dd5232B3Ff7cF5dbB88f295319',
+            darkSwapFeeAssetManager: '0xc6e7DF5E7b4f2A278906862b61205850344D4e7d'
         }
     );
 }

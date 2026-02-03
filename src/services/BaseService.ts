@@ -1,6 +1,8 @@
 import { DarkSwap } from '../darkSwap';
+import { NoteCryptoContext } from '../types';
 
 export class BaseContext {
+  private _noteCryptoContext?: NoteCryptoContext;
   private _address?: string;
   private _signature: string;
   private _merkleRoot?: string;
@@ -36,6 +38,14 @@ export class BaseContext {
 
   get tx(): string | undefined {
     return this._tx;
+  }
+
+  set noteCryptoContext(noteCryptoContext: NoteCryptoContext | undefined) {
+    this._noteCryptoContext = noteCryptoContext;
+  }
+
+  get noteCryptoContext(): NoteCryptoContext | undefined {
+    return this._noteCryptoContext;
   }
 }
 

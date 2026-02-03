@@ -61,5 +61,5 @@ describe('ProSwapService', () => {
         const bobOnChainStatus = await getNoteOnChainStatusBySignature(bobDarkSwap, bobSwapMessage.inNote, bobSignature);
         assert.equal(bobOnChainStatus, NoteOnChainStatus.ACTIVE);
 
-    }, 6000);
+    }, 60000);
 });

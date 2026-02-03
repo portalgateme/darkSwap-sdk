@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { generateJoinProof, JoinProofResult } from '../../proof/basic/joinProof';
-import { DarkSwapNote, EMPTY_NULLIFIER } from '../../types';
+import { BLANK_BYTES, DarkSwapNote, EMPTY_NULLIFIER } from '../../types';
 import { hexlify32, isAddressEquals } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { multiGetMerklePathAndRoot } from '../merkletree';
@@ -129,6 +129,7 @@ export class JoinService extends BaseContractService {
       ],
       hexlify32(context.outNote.note),
       context.proof.outNoteFooter,
+      BLANK_BYTES,
       context.proof.proof
     ];
 

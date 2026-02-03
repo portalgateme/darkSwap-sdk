@@ -4,7 +4,7 @@
     "publishConfig": {
         "access": "public"
     },
-    "version": "0.1.41",
+    "version": "0.3.0-beta1",
     "description": "DarkSwap SDK for browser and Node.js",
     "main": "dist/index.js",
     "typings": "dist/index.d.ts",
@@ -29,6 +29,8 @@
     },
     "dependencies": {
         "@aztec/bb.js": "0.84.0",
+        "@noble/ciphers": "^2.1.1",
+        "@noble/hashes": "^2.0.1",
         "@noir-lang/noir_js": "1.0.0-beta.6",
         "@noir-lang/noir_wasm": "1.0.0-beta.6",
         "@noir-lang/types": "1.0.0-beta.6",

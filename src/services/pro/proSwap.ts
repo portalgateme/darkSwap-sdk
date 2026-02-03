@@ -191,7 +191,8 @@ export class ProSwapService extends BaseContractService {
             context.proof.bobOutNullifier,
             hexlify32(context.bobSwapMessage.orderNote.feeRatio),
             hexlify32(context.bobSwapMessage.inNote.note),
-            context.proof.bobInNoteFooter
+            context.proof.bobInNoteFooter,
+            []
         ];
 
         const estimatedGas = await contract.proSwap.estimateGas(

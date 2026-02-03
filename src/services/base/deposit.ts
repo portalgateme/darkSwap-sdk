@@ -8,7 +8,7 @@ import { DarkSwapError } from '../../entities';
 import { DepositProofResult, generateDepositProof } from '../../proof/basic/depositProof';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
-import { DarkSwapNote } from '../../types';
+import { BLANK_BYTES, DarkSwapNote } from '../../types';
 import { MAX_ALLOWANCE } from '../../utils/constants';
 import { hexlify32, isNativeAsset } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
@@ -132,6 +132,7 @@ export class DepositService extends BaseContractService {
         context.proof.oldBalanceNullifier,
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
+        BLANK_BYTES,
         context.proof.proof];
       const estimatedGas = await contract.deposit.estimateGas(
         ...depositArgs,
@@ -152,6 +153,7 @@ export class DepositService extends BaseContractService {
         context.proof.oldBalanceNullifier,
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
+        BLANK_BYTES,
         context.proof.proof
       ];
       const estimatedGas = await contract.deposit.estimateGas(

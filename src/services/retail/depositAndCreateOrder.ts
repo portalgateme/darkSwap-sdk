@@ -5,7 +5,7 @@ import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote, createOrderNoteExt, validateOrderNoteWithPubKey } from '../../proof/noteService';
 import { generateRetailCreateOrderProof, generateRetailSwapMessage, RetailCreateOrderProofResult } from '../../proof/retail/depositOrderProof';
-import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, NoteCryptoContext } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { calcFeeAmount, getFeeRatio } from '../feeRatioService';
 import { hexlify32 } from '../../utils/util';
@@ -15,6 +15,7 @@ import { getConfirmations, legacyTokenConfig } from '../../config';
 import { MAX_ALLOWANCE } from '../../utils/constants';
 import ERC20Abi from '../../abis/IERC20.json';
 import ERC20_USDT from '../../abis/IERC20_USDT.json';
+import { encryptNote, encryptOrderNote } from '../noteCryptoService';
 
 class RetailCreateOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -23,8 +24,9 @@ class RetailCreateOrderContext extends BaseContext {
   private _feeAmount?: bigint;
   private _swapMessage?: DarkSwapMessage;
 
-  constructor(signature: string) {
+  constructor(signature: string, cryptoContext: NoteCryptoContext) {
     super(signature);
+    this.noteCryptoContext = cryptoContext;
   }
 
   set orderNote(orderNote: DarkSwapOrderNote | undefined) {
@@ -73,13 +75,13 @@ export class RetailCreateOrderService extends BaseContractService {
     super(_darkSwap);
   }
 
-  public async rebuildContextFromSwapMessage(swapMessage: DarkSwapMessage, signature: string) {
+  public async rebuildContextFromSwapMessage(swapMessage: DarkSwapMessage, signature: string, cryptoContext: NoteCryptoContext) {
     const [pubKey] = await generateKeyPair(signature);
     //validate the swapMessage is by this signature
     if(!validateOrderNoteWithPubKey(swapMessage.orderNote, pubKey)) {
       throw new DarkSwapError('SwapMessage does not belong to this wallet');
     }
-    const context = new RetailCreateOrderContext(signature);
+    const context = new RetailCreateOrderContext(signature, cryptoContext);
     context.orderNote = swapMessage.orderNote;
     context.swapInNote = swapMessage.inNote;
     context.feeAmount = swapMessage.feeAmount;
@@ -94,7 +96,8 @@ export class RetailCreateOrderService extends BaseContractService {
     depositAmount: bigint,
     swapInAsset: string,
     swapInAmount: bigint,
-    signature: string
+    signature: string,
+    cryptoContext: NoteCryptoContext
   ): Promise<{ context: RetailCreateOrderContext; swapMessage: DarkSwapMessage }> {
     const [pubKey, privKey] = await generateKeyPair(signature);
     const feeRatio = BigInt(await getFeeRatio(address, this._darkSwap));
@@ -102,7 +105,7 @@ export class RetailCreateOrderService extends BaseContractService {
     const feeAmount = calcFeeAmount(swapInAmount, feeRatio);
     const realSwapInAmount = swapInAmount - feeAmount
     const swapInNote = createNote(address, swapInAsset, realSwapInAmount, pubKey);
-    const context = new RetailCreateOrderContext(signature);
+    const context = new RetailCreateOrderContext(signature, cryptoContext);
     context.orderNote = orderNote;
     context.swapInNote = swapInNote;
     context.feeAmount = feeAmount;
@@ -160,9 +163,12 @@ export class RetailCreateOrderService extends BaseContractService {
 
   public async execute(context: RetailCreateOrderContext): Promise<string> {
     await this.generateProof(context);
-    if (!context || !context.orderNote || !context.swapInNote || !context.proof) {
+    if (!context || !context.orderNote || !context.swapInNote || !context.proof || !context.noteCryptoContext) {
       throw new DarkSwapError('Invalid context');
     }
+
+    const encryptedOrderNote = encryptOrderNote(context.orderNote, context.noteCryptoContext);
+    const encryptedSwapInNote = encryptNote(context.swapInNote, context.noteCryptoContext);
 
     const contract = new ethers.Contract(
       this._darkSwap.contracts.darkSwapAssetManager,
@@ -182,7 +188,11 @@ export class RetailCreateOrderService extends BaseContractService {
         context.orderNote.asset,
         bn_to_0xhex(context.orderNote.amount),
         hexlify32(context.swapInNote.note),
-        context.proof.swapInNoteFooter
+        context.proof.swapInNoteFooter,
+        [
+          encryptedOrderNote,
+          encryptedSwapInNote
+        ]
       ],
       context.proof.proof,
       {

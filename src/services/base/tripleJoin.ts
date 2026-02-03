@@ -5,7 +5,7 @@ import { DarkSwapError } from '../../entities';
 import { generateTripleJoinProof, TripleJoinProofResult } from '../../proof/basic/tripleJoinProof';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
-import { DarkSwapNote } from '../../types';
+import { BLANK_BYTES, DarkSwapNote } from '../../types';
 import { hexlify32, isAddressEquals } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { multiGetMerklePathAndRoot } from '../merkletree';
@@ -156,6 +156,7 @@ export class TripleJoinService extends BaseContractService {
       ],
       hexlify32(context.outNote.note),
       context.proof.outNoteFooter,
+      BLANK_BYTES,
       context.proof.proof
     ];
 

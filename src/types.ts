@@ -2,6 +2,8 @@ import { Fr } from "./aztec/fields/fields";
 
 export type Hex = string;
 
+export const BLANK_BYTES = "0x";
+
 export enum PROOF_DOMAIN {
     DEPOSIT = 10001,
     WITHDRAW = 10002,
@@ -73,4 +75,9 @@ export type DarkSwapMessage = {
     feeAmount: bigint,
     publicKey: [Fr, Fr],
     signature: string,
+}
+
+export type NoteCryptoContext = {
+    address: string,
+    keyHex: string
 }

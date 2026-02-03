@@ -5,7 +5,7 @@ import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
 import { generateProCancelOrderProof, ProCancelOrderProofResult } from '../../proof/pro/orders/cancelOrderProof';
-import { DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { BLANK_BYTES, DarkSwapNote, DarkSwapOrderNote } from '../../types';
 import { hexlify32 } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { EMPTY_PATH, getMerklePathAndRoot, MerklePath, multiGetMerklePathAndRoot } from '../merkletree';
@@ -134,6 +134,7 @@ export class ProCancelOrderService extends BaseContractService {
       context.proof.oldBalanceNullifier,
       hexlify32(context.newBalance.note),
       context.proof.newBalanceNoteFooter,
+      BLANK_BYTES,
       context.proof.proof
     );
     await tx.wait();
