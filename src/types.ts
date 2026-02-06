@@ -14,7 +14,10 @@ export enum PROOF_DOMAIN {
     RETAIL_CANCEL_ORDER = 10007,
     JOIN = 10008,
     TRIPLE_JOIN = 10009,
-    RETAIL_SWAP = 10010
+    RETAIL_SWAP = 10010,
+    PAIR_JOIN = 10011,
+    RETAIL_CREATE_MAKER_ORDER = 10012,
+    MC_MARKET_SWAP = 10100
 }
 
 export const EMPTY_NULLIFIER = 0n;
@@ -28,6 +31,12 @@ export class DarkSwapProofError extends Error {
         this.name = 'DarkSwapProofError'
         Object.setPrototypeOf(this, DarkSwapProofError.prototype)
     }
+}
+
+export type DarkSwapPartialNote = {
+    address: string,
+    rho: bigint,
+    asset: string,
 }
 
 export type DarkSwapNote = CreateNoteParam & {
