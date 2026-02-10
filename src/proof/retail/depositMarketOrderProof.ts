@@ -1,14 +1,13 @@
-import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapPartialNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
+import { Fr } from "../../aztec/fields/fields";
+import retailCreateOrderCircuit from "../../circuits/retail/dark_swap_retail_deposit_create_market_order_compiled_circuit.json";
+import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapMarketMessage, DarkSwapOrderNote, DarkSwapPartialNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
-import { bn_to_0xhex } from "../../utils/formatters";
-import { bn_to_hex } from "../../utils/formatters";
+import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";
 import { mimc_bn254 } from "../../utils/mimc";
 import { signatureToHexString, uint8ArrayToNumberArray } from "../../utils/proofUtils";
 import { generateProof, signMessage } from "../baseProofService";
 import { generateKeyPair } from "../keyService";
 import { calcNullifier, getNoteFooter } from "../noteService";
-import retailCreateOrderCircuit from "../../circuits/retail/dark_swap_retail_deposit_create_market_order_compiled_circuit.json";
-import { Fr } from "../../aztec/fields/fields";
 
 type RetailCreateMarketOrderProofInput = BaseProofInput & {
     deposit_out_note: string,
@@ -40,23 +39,27 @@ export type RetailCreateMarketOrderProofResult = BaseProofResult & {
     swapInNoteFooter: string,
 }
 
-export async function generateRetailSwapMessage(
+export async function generateRetailMarketSwapMessage(
     address: string,
     orderNote: DarkSwapOrderNote,
-    swapInNote: DarkSwapNote,
-    feeAmount: bigint,
+    swapInPartialNote: DarkSwapPartialNote,
+    minInAmount: bigint,
     pubKey: [Fr, Fr],
     privKey: Fr
-): Promise<DarkSwapMessage> {
+): Promise<DarkSwapMarketMessage> {
 
     const addressMod = encodeAddress(address);
+    const inAssetMod = encodeAddress(swapInPartialNote.asset);
     const orderNoteNullifier = calcNullifier(orderNote.rho, pubKey);
+    const inNoteFooter = getNoteFooter(swapInPartialNote.rho, pubKey);
     const message = bn_to_hex(mimc_bn254([
-        BigInt(PROOF_DOMAIN.RETAIL_CREATE_ORDER),
+        BigInt(PROOF_DOMAIN.RETAIL_CREATE_MAKER_ORDER),
         addressMod,
         orderNoteNullifier,
         orderNote.feeRatio,
-        swapInNote.note,
+        inAssetMod,
+        minInAmount,
+        inNoteFooter
     ]));
     const signature = await signMessage(message, privKey);
 
@@ -64,8 +67,8 @@ export async function generateRetailSwapMessage(
         address: address,
         orderNote: orderNote,
         orderNullifier: bn_to_0xhex(orderNoteNullifier),
-        inNote: swapInNote,
-        feeAmount: feeAmount,
+        inPartialNote: swapInPartialNote,
+        minInAmount: minInAmount,
         publicKey: pubKey,
         signature: signatureToHexString(signature),
     }

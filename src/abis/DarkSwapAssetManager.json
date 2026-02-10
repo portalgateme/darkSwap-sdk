@@ -1020,6 +1020,11 @@
               "internalType": "bytes[]",
               "name": "aliceEncryptedNotes",
               "type": "bytes[]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "bobEncryptedNodtes",
+              "type": "bytes[]"
             }
           ],
           "internalType": "struct DarkSwapAssetManager.ProMarketOrderSwapArgs",
@@ -1140,6 +1145,56 @@
       "name": "renounceOwnership",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "depositOutNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "depositOutNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "outAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "outAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "inNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "encryptdNotes",
+              "type": "bytes[]"
+            }
+          ],
+          "internalType": "struct DarkSwapAssetManager.RetailDepositCreateMarketOrderArgs",
+          "name": "_args",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "retailDepositCreateMarketOrder",
+      "outputs": [],
+      "stateMutability": "payable",
       "type": "function"
     },
     {

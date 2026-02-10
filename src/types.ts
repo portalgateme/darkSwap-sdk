@@ -86,6 +86,16 @@ export type DarkSwapMessage = {
     signature: string,
 }
 
+export type DarkSwapMarketMessage = {
+    address: string,
+    orderNote: DarkSwapOrderNote,
+    orderNullifier: string,
+    inPartialNote: DarkSwapPartialNote,
+    minInAmount: bigint,
+    publicKey: [Fr, Fr],
+    signature: string,
+}
+
 export type NoteCryptoContext = {
     address: string,
     keyHex: string

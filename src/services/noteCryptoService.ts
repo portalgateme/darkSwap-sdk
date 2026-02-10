@@ -3,7 +3,7 @@ import { bytesToNumberBE, concatBytes } from '@noble/ciphers/utils.js';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
-import { DarkSwapNote, DarkSwapOrderNote, NoteCryptoContext } from "../types";
+import { DarkSwapNote, DarkSwapOrderNote, DarkSwapPartialNote, NoteCryptoContext } from "../types";
 
 // Constants
 const IV_LENGTH = 12; // 12 bytes for GCM
@@ -203,6 +203,20 @@ export function encryptNote(note: DarkSwapNote, context: NoteCryptoContext): str
     return encryptContent(key, [assetBytes, amountBytes, rhoBytes, noteBytes]);
 }
 
+export function encryptPartialNote(note: DarkSwapPartialNote, context: NoteCryptoContext): string {
+    const key = hexToBytes(context.keyHex);
+    if (key.length !== KEY_LENGTH) {
+        throw new Error(`Invalid key length. Expected ${KEY_LENGTH} bytes.`);
+    }
+
+    const assetBytes = hexToBytes(note.asset.startsWith('0x') ? note.asset.slice(2) : note.asset);
+    if (assetBytes.length !== 20) throw new Error("Invalid asset address length");
+
+    const rhoBytes = bigIntToMinBytes(note.rho);
+
+    return encryptContent(key, [assetBytes, rhoBytes]);
+}
+
 export function decryptNote(encryptedNote: string, context: NoteCryptoContext): DarkSwapNote {
     const key = hexToBytes(context.keyHex);
     if (key.length !== KEY_LENGTH) {
@@ -221,6 +235,26 @@ export function decryptNote(encryptedNote: string, context: NoteCryptoContext): 
         rho: bytesToNumberBE(rhoBytes) as bigint,
         amount: bytesToNumberBE(amountBytes) as bigint,
         note: bytesToNumberBE(noteBytes) as bigint,
+        asset: "0x" + bytesToHex(assetBytes),
+    }
+}
+
+export function decryptPartialNote(encryptedPartialNote: string, context: NoteCryptoContext): DarkSwapPartialNote {
+    const key = hexToBytes(context.keyHex);
+    if (key.length !== KEY_LENGTH) {
+        throw new Error(`Invalid key length. Expected ${KEY_LENGTH} bytes.`);
+    }
+
+    const fields = decryptContent(key, encryptedPartialNote);
+    if (fields.length !== 2) {
+        throw new Error(`Invalid decrypted field count. Expected 2, got ${fields.length}`);
+    }
+
+    const [assetBytes, rhoBytes] = fields;
+
+    return {
+        address: context.address,
+        rho: bytesToNumberBE(rhoBytes) as bigint,
         asset: "0x" + bytesToHex(assetBytes),
     }
 }
