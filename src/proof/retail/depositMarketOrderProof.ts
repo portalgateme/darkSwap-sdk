@@ -1,6 +1,6 @@
 import { Fr } from "../../aztec/fields/fields";
 import retailCreateOrderCircuit from "../../circuits/retail/dark_swap_retail_deposit_create_market_order_compiled_circuit.json";
-import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapMarketMessage, DarkSwapOrderNote, DarkSwapPartialNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
+import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapBobMarketMessage, DarkSwapMarketMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapPartialNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";
 import { mimc_bn254 } from "../../utils/mimc";
@@ -39,6 +39,34 @@ export type RetailCreateMarketOrderProofResult = BaseProofResult & {
     swapInNoteFooter: string,
 }
 
+export async function generateRetailMarketSwapMessageForMc(
+    mcAddress: string,
+    bobMessage: DarkSwapBobMarketMessage,
+    bobInNote: DarkSwapNote,
+    bobFeeAmount: bigint,
+    pubKey: [Fr, Fr],
+    privKey: Fr
+): Promise<DarkSwapMarketMessage> {
+    const message = bn_to_hex(mimc_bn254([
+        BigInt(PROOF_DOMAIN.MC_MARKET_SWAP),
+        bobInNote.amount + bobFeeAmount,
+    ]));
+    const signature = await signMessage(message, privKey);
+
+    return {
+        bobOrderNote: bobMessage.orderNote,
+        bobOrderNullifier: bobMessage.orderNullifier,
+        bobInNote: bobInNote,
+        bobMinInAmount: bobMessage.minInAmount,
+        bobFeeAmount: bobFeeAmount,
+        bobPublicKey: bobMessage.publicKey,
+        bobSignature: bobMessage.signature,
+        mcWalletAddress: mcAddress,
+        mcPublicKey: pubKey,
+        mcSignature: signatureToHexString(signature),
+    }
+}
+
 export async function generateRetailMarketSwapMessage(
     address: string,
     orderNote: DarkSwapOrderNote,
@@ -46,7 +74,7 @@ export async function generateRetailMarketSwapMessage(
     minInAmount: bigint,
     pubKey: [Fr, Fr],
     privKey: Fr
-): Promise<DarkSwapMarketMessage> {
+): Promise<DarkSwapBobMarketMessage> {
 
     const addressMod = encodeAddress(address);
     const inAssetMod = encodeAddress(swapInPartialNote.asset);

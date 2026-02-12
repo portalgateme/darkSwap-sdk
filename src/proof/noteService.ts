@@ -41,6 +41,26 @@ export function createPartialNote(
   }
 }
 
+export function rebuildNote(
+  partialNote: DarkSwapPartialNote,
+  amount: bigint,
+  fuzkPubKey: [Fr, Fr]
+): DarkSwapNoteExt {
+  const footer = getNoteFooter(partialNote.rho, fuzkPubKey)
+
+  const addressMod = encodeAddress(partialNote.address)
+  const assetMod = encodeAddress(partialNote.asset)
+  const note = mimc_bn254([DOMAIN_NOTE, addressMod, assetMod, amount, footer])
+  return {
+    address: partialNote.address,
+    rho: partialNote.rho,
+    note,
+    asset: partialNote.asset,
+    amount,
+    footer,
+  }
+}
+
 export function createNote(
   address: string,
   asset: string,

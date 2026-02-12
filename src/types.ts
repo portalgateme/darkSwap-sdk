@@ -42,6 +42,7 @@ export type DarkSwapPartialNote = {
 export type DarkSwapNote = CreateNoteParam & {
     note: bigint,
 }
+
 export type DarkSwapOrderNote = DarkSwapNote & {
     feeRatio: bigint,
 }
@@ -58,7 +59,6 @@ export type CreateNoteParam = {
 }
 
 export type DarkSwapNoteExt = DarkSwapNote & { footer: bigint }
-
 
 export type BaseProofParam = {
     address: string,
@@ -86,7 +86,7 @@ export type DarkSwapMessage = {
     signature: string,
 }
 
-export type DarkSwapMarketMessage = {
+export type DarkSwapBobMarketMessage = {
     address: string,
     orderNote: DarkSwapOrderNote,
     orderNullifier: string,
@@ -94,6 +94,19 @@ export type DarkSwapMarketMessage = {
     minInAmount: bigint,
     publicKey: [Fr, Fr],
     signature: string,
+}
+
+export type DarkSwapMarketMessage = {
+    bobOrderNote: DarkSwapOrderNote,
+    bobOrderNullifier: string,
+    bobInNote: DarkSwapNote,
+    bobMinInAmount: bigint,
+    bobFeeAmount: bigint,
+    bobPublicKey: [Fr, Fr],
+    bobSignature: string,
+    mcWalletAddress: string,
+    mcPublicKey: [Fr, Fr],
+    mcSignature: string,
 }
 
 export type NoteCryptoContext = {
