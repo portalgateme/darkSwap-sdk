@@ -5,10 +5,11 @@ import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
 import { generateProCancelOrderProof, ProCancelOrderProofResult } from '../../proof/pro/orders/cancelOrderProof';
-import { BLANK_BYTES, DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { BLANK_BYTES, DarkSwapNote, DarkSwapOrderNote, NoteCryptoContext } from '../../types';
 import { hexlify32 } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { EMPTY_PATH, getMerklePathAndRoot, MerklePath, multiGetMerklePathAndRoot } from '../merkletree';
+import { encryptNote } from '../noteCryptoService';
 
 class ProCancelOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
@@ -16,8 +17,9 @@ class ProCancelOrderContext extends BaseContext {
   private _newBalance?: DarkSwapNote;
   private _proof?: ProCancelOrderProofResult;
 
-  constructor(signature: string) {
+  constructor(signature: string, noteCryptoContext: NoteCryptoContext) {
     super(signature);
+    this.noteCryptoContext = noteCryptoContext;
   }
 
   set orderNote(orderNote: DarkSwapOrderNote | undefined) {
@@ -62,11 +64,16 @@ export class ProCancelOrderService extends BaseContractService {
     address: string,
     orderNote: DarkSwapOrderNote,
     balanceNote: DarkSwapNote,
-    signature: string
+    signature: string,
+    noteCryptoContext: NoteCryptoContext
   ): Promise<{ context: ProCancelOrderContext; newBalance: DarkSwapNote }> {
+    if (!noteCryptoContext && !this._darkSwap.disableUploadNotes) {
+      throw new DarkSwapError('Note crypto context is required');
+    }
+
     const [pubKey] = await generateKeyPair(signature);
     const newBalance = createNote(address, orderNote.asset, balanceNote.amount + orderNote.amount, pubKey);
-    const context = new ProCancelOrderContext(signature);
+    const context = new ProCancelOrderContext(signature, noteCryptoContext);
     context.orderNote = orderNote;
     context.oldBalance = balanceNote;
     context.newBalance = newBalance;
@@ -123,6 +130,16 @@ export class ProCancelOrderService extends BaseContractService {
       throw new DarkSwapError('Invalid context');
     }
 
+    if (!this._darkSwap.disableUploadNotes && !context.noteCryptoContext) {
+      throw new DarkSwapError('Note crypto context is required');
+    }
+
+    const encryptedNewBalanceNote =
+      this._darkSwap.disableUploadNotes ?
+        BLANK_BYTES :
+        encryptNote(context.newBalance, context.noteCryptoContext!);
+
+
     const contract = new ethers.Contract(
       this._darkSwap.contracts.darkSwapAssetManager,
       DarkSwapAssetManagerAbi.abi,
@@ -134,7 +151,7 @@ export class ProCancelOrderService extends BaseContractService {
       context.proof.oldBalanceNullifier,
       hexlify32(context.newBalance.note),
       context.proof.newBalanceNoteFooter,
-      BLANK_BYTES,
+      encryptedNewBalanceNote,
       context.proof.proof
     );
     await tx.wait();

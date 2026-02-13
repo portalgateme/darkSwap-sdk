@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { DarkSwap } from "../../src";
+import { createNoteCryptoContext, DarkSwap, deriveKey } from "../../src";
 import IERC20ABI from "../../src/abis/IERC20.json";
 
 const PROVIDER_URL = 'http://localhost:18544';
@@ -60,7 +60,23 @@ export async function getAliceWalletBalance(asset: string) {
     }
 }
 
-export function getDarkSwapForAlice() {
+export async function getAliceNoteCryptoContext() {
+    const wallet = getAliceWallet();
+    const signature = await getAliceSignature();
+    const keyHex = deriveKey(signature, "DarkSwap Note Encryption Salt " + wallet.address);
+    const noteCryptoContext = createNoteCryptoContext(wallet.address, keyHex);
+    return noteCryptoContext;
+}
+
+export async function getBobNoteCryptoContext() {
+    const wallet = getBobWallet();
+    const signature = await getBobSignature();
+    const keyHex = deriveKey(signature, "DarkSwap Note Encryption Salt " + wallet.address);
+    const noteCryptoContext = createNoteCryptoContext(wallet.address, keyHex);
+    return noteCryptoContext;
+}
+
+export function getDarkSwapForAlice(disableUploadNotes: boolean = false) {
     const wallet = getAliceWallet();
     return new DarkSwap(
         wallet,
@@ -72,7 +88,8 @@ export function getDarkSwapForAlice() {
             merkleTreeOperator: HARDHAT_CA.merkleTreeOperator,
             darkSwapAssetManager: HARDHAT_CA.darkSwapAssetManager,
             darkSwapFeeAssetManager: HARDHAT_CA.darkSwapFeeAssetManager
-        }
+        },
+        disableUploadNotes
     );
 }
 

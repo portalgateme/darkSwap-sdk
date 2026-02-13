@@ -5,12 +5,13 @@ import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote, EMPTY_NOTE } from '../../proof/noteService';
 import { generateProSwapProof, ProSwapProofResult } from '../../proof/pro/orders/swapProof';
-import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '../../types';
+import { BLANK_BYTES, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, NoteCryptoContext } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { multiGetMerklePathAndRoot } from '../merkletree';
 import { hexlify32 } from '../../utils/util';
 import { generateRetailSwapMessage } from '../../proof/retail/depositOrderProof';
 import { calcFeeAmount } from '../feeRatioService';
+import { encryptNote } from '../noteCryptoService';
 
 class ProSwapContext extends BaseContext {
     private _orderNote?: DarkSwapOrderNote;
@@ -21,8 +22,9 @@ class ProSwapContext extends BaseContext {
     private _bobSwapMessage?: DarkSwapMessage;
     private _aliceFeeAmount?: bigint;
 
-    constructor(signature: string) {
+    constructor(signature: string, noteCryptoContext: NoteCryptoContext) {
         super(signature);
+        this.noteCryptoContext = noteCryptoContext;
     }
 
     set orderNote(orderNote: DarkSwapOrderNote | undefined) {
@@ -106,8 +108,12 @@ export class ProSwapService extends BaseContractService {
         orderNote: DarkSwapOrderNote,
         bobAddress: string,
         bobSwapMessage: DarkSwapMessage,
-        signature: string
+        signature: string,
+        noteCryptoContext: NoteCryptoContext
     ): Promise<{ context: ProSwapContext; swapInNote: DarkSwapNote, changeNote: DarkSwapNote, feeAmount: bigint }> {
+        if (!noteCryptoContext && !this._darkSwap.disableUploadNotes) {
+            throw new DarkSwapError('Note crypto context is required');
+        }
         const [pubKey] = await generateKeyPair(signature);
         const swapOutAmount = bobSwapMessage.feeAmount + bobSwapMessage.inNote.amount;
         const swapInAmount = bobSwapMessage.orderNote.amount;
@@ -116,7 +122,7 @@ export class ProSwapService extends BaseContractService {
         const changeNote = changeAmount == 0n ? EMPTY_NOTE : createNote(address, orderNote.asset, changeAmount, pubKey);
         const swapInNote = createNote(address, bobSwapMessage.orderNote.asset, swapInAmount - aliceFeeAmount, pubKey);
 
-        const context = new ProSwapContext(signature);
+        const context = new ProSwapContext(signature, noteCryptoContext);
         context.orderNote = orderNote;
         context.swapInNote = swapInNote;
         context.changeNote = changeNote;
@@ -174,6 +180,11 @@ export class ProSwapService extends BaseContractService {
             throw new DarkSwapError('Invalid context');
         }
 
+        const encryptedSwapInNote = this._darkSwap.disableUploadNotes ?
+            BLANK_BYTES : encryptNote(context.swapInNote, context.noteCryptoContext!);
+        const encryptedChangeNote = this._darkSwap.disableUploadNotes ?
+            BLANK_BYTES : encryptNote(context.changeNote, context.noteCryptoContext!);
+
         const contract = new ethers.Contract(
             this._darkSwap.contracts.darkSwapAssetManager,
             DarkSwapAssetManagerAbi.abi,
@@ -192,7 +203,7 @@ export class ProSwapService extends BaseContractService {
             hexlify32(context.bobSwapMessage.orderNote.feeRatio),
             hexlify32(context.bobSwapMessage.inNote.note),
             context.proof.bobInNoteFooter,
-            []
+            [encryptedSwapInNote, encryptedChangeNote]
         ];
 
         const estimatedGas = await contract.proSwap.estimateGas(

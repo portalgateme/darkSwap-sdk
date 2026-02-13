@@ -1,8 +1,10 @@
 import { assert, describe, it } from 'vitest';
-import { createNoteCryptoContext, DepositService, deriveKey, generateKeyPair, NoteOnChainStatus, ProCreateOrderService, ProMarketSwapService, ProSwapService, RetailCreateMarketOrderService } from '../../../src';
+import { createNoteCryptoContext, decryptNote, DepositService, deriveKey, generateKeyPair, NoteOnChainStatus, ProCreateOrderService, ProMarketSwapService, ProSwapService, RetailCreateMarketOrderService } from '../../../src';
 import { EMPTY_NOTE } from '../../../src/proof/noteService';
 import { getNoteOnChainStatusBySignature } from '../../../src/services/noteService';
-import { getAliceSignature, getAliceWallet, getBobSignature, getBobWallet, getDarkSwapForAlice, getDarkSwapForBob, getMcAddress, getMcSignature } from "../../utils/helpers";
+import { getAliceNoteCryptoContext, getAliceSignature, getAliceWallet, getBobSignature, getBobWallet, getDarkSwapForAlice, getDarkSwapForBob, getMcAddress, getMcSignature } from "../../utils/helpers";
+import DarkSwapAssetManagerAbi from '../../../src/abis/DarkSwapAssetManager.json';
+import { ethers } from 'ethers';
 
 describe('ProMarketSwapService', () => {
     it('should swap', async () => {
@@ -11,10 +13,11 @@ describe('ProMarketSwapService', () => {
 
         const aliceWallet = getAliceWallet();
         const aliceSignature = await getAliceSignature();
+        const aliceNoteCryptoContext = await getAliceNoteCryptoContext();
         const aliceDarkSwap = getDarkSwapForAlice();
         const aliceDepositAmount = 2000000000000000000n;
         const aliceDepositService = new DepositService(aliceDarkSwap);
-        const { context, newBalanceNote } = await aliceDepositService.prepare(EMPTY_NOTE, swapOutAsset, aliceDepositAmount, aliceWallet.address, aliceSignature);
+        const { context, newBalanceNote } = await aliceDepositService.prepare(EMPTY_NOTE, swapOutAsset, aliceDepositAmount, aliceWallet.address, aliceSignature, aliceNoteCryptoContext);
         await aliceDepositService.execute(context);
         assert.equal(newBalanceNote.amount, aliceDepositAmount);
         const onChainStatus = await getNoteOnChainStatusBySignature(aliceDarkSwap, newBalanceNote, aliceSignature);
@@ -23,7 +26,7 @@ describe('ProMarketSwapService', () => {
         const aliceOrderAmount = 2000000000000000000n;
         const aliceSwapInAmount = 1000000000000000000n;
         const aliceCreateOrderService = new ProCreateOrderService(aliceDarkSwap);
-        const { context: context2, orderNote: aliceOrderNote, newBalance: aliceNewBalance } = await aliceCreateOrderService.prepare(aliceWallet.address, swapOutAsset, aliceOrderAmount, swapInAsset, aliceSwapInAmount, newBalanceNote, aliceSignature);
+        const { context: context2, orderNote: aliceOrderNote, newBalance: aliceNewBalance } = await aliceCreateOrderService.prepare(aliceWallet.address, swapOutAsset, aliceOrderAmount, swapInAsset, aliceSwapInAmount, newBalanceNote, aliceSignature, aliceNoteCryptoContext);
         await aliceCreateOrderService.execute(context2);
         assert.equal(aliceNewBalance.amount, aliceDepositAmount - aliceOrderAmount);
         assert.equal(aliceOrderNote.amount, aliceOrderAmount);
@@ -66,8 +69,9 @@ describe('ProMarketSwapService', () => {
             bobWallet.address,
             swapMessage,
             aliceSignature,
+            aliceNoteCryptoContext
         );
-        await aliceMarketSwapService.execute(aliceContext);
+        const txHash = await aliceMarketSwapService.execute(aliceContext);
 
         assert.equal(aliceChangeNote.amount, aliceOrderAmount - bobInAmount);
         const onChainStatus2 = await getNoteOnChainStatusBySignature(aliceDarkSwap, aliceChangeNote, aliceSignature);
@@ -79,6 +83,31 @@ describe('ProMarketSwapService', () => {
         assert.equal(onChainStatus4, NoteOnChainStatus.ACTIVE);
         const onChainStatus5 = await getNoteOnChainStatusBySignature(bobDarkSwap, swapMessage.bobOrderNote, bobSignature);
         assert.equal(onChainStatus5, NoteOnChainStatus.SPENT);
+
+        const iface = new ethers.Interface(DarkSwapAssetManagerAbi.abi);
+        const tx = await aliceDarkSwap.provider.getTransaction(txHash);
+        if (!tx) {
+            throw new Error('Transaction not found');
+        }
+        const input = iface.parseTransaction({ data: tx.data })
+        if (!input) {
+            throw new Error('Transaction input not found');
+        }
+        const noteStr = input.args['_args']['aliceEncryptedNotes'][0];
+        const decryptedNote = decryptNote(noteStr, aliceNoteCryptoContext);
+        assert.equal(decryptedNote.asset.toLowerCase(), aliceSwapInNote.asset.toLowerCase());
+        assert.equal(decryptedNote.amount, aliceSwapInNote.amount);
+        assert.equal(decryptedNote.note, aliceSwapInNote.note);
+        assert.equal(decryptedNote.rho, aliceSwapInNote.rho);
+        assert.equal(decryptedNote.address, aliceSwapInNote.address);
+
+        const noteStr1 = input.args['_args']['aliceEncryptedNotes'][1];
+        const decryptedNote1 = decryptNote(noteStr1, aliceNoteCryptoContext);
+        assert.equal(decryptedNote1.asset.toLowerCase(), aliceChangeNote.asset.toLowerCase());
+        assert.equal(decryptedNote1.amount, aliceChangeNote.amount);
+        assert.equal(decryptedNote1.note, aliceChangeNote.note);
+        assert.equal(decryptedNote1.rho, aliceChangeNote.rho);
+        assert.equal(decryptedNote1.address, aliceChangeNote.address);
 
     }, 60000);
 });
