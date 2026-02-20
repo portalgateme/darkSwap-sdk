@@ -2,34 +2,14 @@ import { gcm } from '@noble/ciphers/aes.js';
 import { bytesToNumberBE, concatBytes } from '@noble/ciphers/utils.js';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
-import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
+import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils.js';
 import { DarkSwapNote, DarkSwapOrderNote, DarkSwapPartialNote, NoteCryptoContext } from "../types";
 
 // Constants
 const IV_LENGTH = 12; // 12 bytes for GCM
 const KEY_LENGTH = 32; // 32 bytes for AES-256
 
-/**
- * Securely generates random bytes.
- * Uses global crypto.getRandomValues.
- */
-function getRandomBytes(len: number): Uint8Array {
-    if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.getRandomValues) {
-        return globalThis.crypto.getRandomValues(new Uint8Array(len));
-    }
-    // Fallback for Node.js environments where globalThis.crypto might not be set (though it is in Node 19+)
-    // We try to require 'node:crypto' dynamically to avoid breaking browser builds
-    try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { webcrypto } = require('node:crypto');
-        if (webcrypto && webcrypto.getRandomValues) {
-            return webcrypto.getRandomValues(new Uint8Array(len));
-        }
-    } catch (e) {
-        // ignore
-    }
-    throw new Error("Secure random source not found (crypto.getRandomValues)");
-}
+
 
 /**
  * Converts a BigInt to a minimal big-endian byte array. * @param n The BigInt to convert.
@@ -131,7 +111,7 @@ export function encryptOrderNote(note: DarkSwapOrderNote, context: NoteCryptoCon
 
 function encryptContent(key: Uint8Array, fields: Uint8Array[]) {
     const plaintext = encodeVariableLength(fields);
-    const iv = getRandomBytes(IV_LENGTH);
+    const iv = randomBytes(IV_LENGTH);
     const cipher = gcm(key, iv);
     const encrypted = cipher.encrypt(plaintext);
     const result = concatBytes(iv, encrypted);
