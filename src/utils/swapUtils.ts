@@ -1,4 +1,4 @@
-import { DarkSwapMessage } from "../types";
+import { DarkSwapMarketMessage, DarkSwapMessage } from "../types";
 import { Fr } from "../aztec/fields/fields";
 
 export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
@@ -23,6 +23,34 @@ export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
         feeAmount: swapMessage.feeAmount.toString(),
         pubKey: [swapMessage.publicKey[0].toString(), swapMessage.publicKey[1].toString()],
         signature: swapMessage.signature,
+    });
+}
+
+export function serializeDarkSwapMarketMessage(swapMessage: DarkSwapMarketMessage): string {
+    return JSON.stringify({
+        bobOrderNote: {
+            address: swapMessage.bobOrderNote.address,
+            rho: swapMessage.bobOrderNote.rho.toString(),
+            amount: swapMessage.bobOrderNote.amount.toString(),
+            asset: swapMessage.bobOrderNote.asset,
+            note: swapMessage.bobOrderNote.note.toString(),
+            feeRatio: swapMessage.bobOrderNote.feeRatio.toString(),
+        },
+        bobOrderNullifier: swapMessage.bobOrderNullifier,
+        bobInNote: {
+            address: swapMessage.bobInNote.address,
+            rho: swapMessage.bobInNote.rho.toString(),
+            amount: swapMessage.bobInNote.amount.toString(),
+            asset: swapMessage.bobInNote.asset,
+            note: swapMessage.bobInNote.note.toString(),
+        },
+        bobMinInAmount: swapMessage.bobMinInAmount.toString(),
+        bobFeeAmount: swapMessage.bobFeeAmount.toString(),
+        bobPublicKey: [swapMessage.bobPublicKey[0].toString(), swapMessage.bobPublicKey[1].toString()],
+        bobSignature: swapMessage.bobSignature,
+        mcWalletAddress: swapMessage.mcWalletAddress,
+        mcPublicKey: [swapMessage.mcPublicKey[0].toString(), swapMessage.mcPublicKey[1].toString()],
+        mcSignature: swapMessage.mcSignature,
     });
 }
 
@@ -53,5 +81,34 @@ export function deserializeDarkSwapMessage(serializedMessage: string): DarkSwapM
         signature: message.signature,
         publicKey: deserializePublicKey(message.pubKey),
         orderNullifier: message.orderNullifier,
+    };
+}
+
+export function deserializeDarkSwapMarketMessage(serializedMessage: string): DarkSwapMarketMessage {
+    const message = JSON.parse(serializedMessage);
+    return {
+        bobOrderNote: {
+            address: message.bobOrderNote.address || message.address,
+            rho: BigInt(message.bobOrderNote.rho),
+            amount: BigInt(message.bobOrderNote.amount),
+            asset: message.bobOrderNote.asset,
+            note: BigInt(message.bobOrderNote.note),
+            feeRatio: BigInt(message.bobOrderNote.feeRatio),
+        },
+        bobOrderNullifier: message.bobOrderNullifier,
+        bobInNote: {
+            address: message.bobInNote.address || message.address,
+            rho: BigInt(message.bobInNote.rho),
+            amount: BigInt(message.bobInNote.amount),
+            asset: message.bobInNote.asset,
+            note: BigInt(message.bobInNote.note),
+        },
+        bobMinInAmount: BigInt(message.bobMinInAmount),
+        bobFeeAmount: BigInt(message.bobFeeAmount),
+        bobPublicKey: deserializePublicKey(message.bobPublicKey),
+        bobSignature: message.bobSignature,
+        mcWalletAddress: message.mcWalletAddress,
+        mcPublicKey: deserializePublicKey(message.mcPublicKey),
+        mcSignature: message.mcSignature,
     };
 }
