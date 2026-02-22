@@ -1,4 +1,4 @@
-import { DarkSwapMarketMessage, DarkSwapMessage } from "../types";
+import { DarkSwapBobMarketMessage, DarkSwapMarketMessage, DarkSwapMessage } from "../types";
 import { Fr } from "../aztec/fields/fields";
 
 export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
@@ -21,6 +21,29 @@ export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
             note: swapMessage.inNote.note.toString(),
         },
         feeAmount: swapMessage.feeAmount.toString(),
+        pubKey: [swapMessage.publicKey[0].toString(), swapMessage.publicKey[1].toString()],
+        signature: swapMessage.signature,
+    });
+}
+
+export function serializeDarkSwapBobMarketMessage(swapMessage: DarkSwapBobMarketMessage): string {
+    return JSON.stringify({
+        address: swapMessage.address,
+        orderNote: {
+            address: swapMessage.orderNote.address,
+            rho: swapMessage.orderNote.rho.toString(),
+            amount: swapMessage.orderNote.amount.toString(),
+            asset: swapMessage.orderNote.asset,
+            note: swapMessage.orderNote.note.toString(),
+            feeRatio: swapMessage.orderNote.feeRatio.toString(),
+        },
+        orderNullifier: swapMessage.orderNullifier,
+        inPartialNote: {
+            address: swapMessage.inPartialNote.address,
+            rho: swapMessage.inPartialNote.rho.toString(),
+            asset: swapMessage.inPartialNote.asset,
+        },
+        minInAmount: swapMessage.minInAmount.toString(),
         pubKey: [swapMessage.publicKey[0].toString(), swapMessage.publicKey[1].toString()],
         signature: swapMessage.signature,
     });
@@ -110,5 +133,29 @@ export function deserializeDarkSwapMarketMessage(serializedMessage: string): Dar
         mcWalletAddress: message.mcWalletAddress,
         mcPublicKey: deserializePublicKey(message.mcPublicKey),
         mcSignature: message.mcSignature,
+    };
+}
+
+export function deserializeDarkSwapBobMarketMessage(serializedMessage: string): DarkSwapBobMarketMessage {
+    const message = JSON.parse(serializedMessage);
+    return {
+        address: message.address,
+        orderNote: {
+            address: message.bobOrderNote.address || message.address,
+            rho: BigInt(message.bobOrderNote.rho),
+            amount: BigInt(message.bobOrderNote.amount),
+            asset: message.bobOrderNote.asset,
+            note: BigInt(message.bobOrderNote.note),
+            feeRatio: BigInt(message.bobOrderNote.feeRatio),
+        },
+        orderNullifier: message.orderNullifier,
+        inPartialNote: {
+            address: message.bobInNote.address || message.address,
+            rho: BigInt(message.bobInNote.rho),
+            asset: message.bobInNote.asset,
+        },
+        minInAmount: BigInt(message.minInAmount),
+        publicKey: deserializePublicKey(message.publicKey),
+        signature: message.signature,
     };
 }
