@@ -155,7 +155,7 @@ export function deserializeDarkSwapBobMarketMessage(serializedMessage: string): 
             asset: message.inPartialNote.asset,
         },
         minInAmount: BigInt(message.minInAmount),
-        publicKey: deserializePublicKey(message.publicKey),
+        publicKey: deserializePublicKey(message.pubKey),
         signature: message.signature,
     };
 }
