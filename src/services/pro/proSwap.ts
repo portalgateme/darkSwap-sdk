@@ -5,7 +5,7 @@ import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote, EMPTY_NOTE } from '../../proof/noteService';
 import { generateProSwapProof, ProSwapProofResult } from '../../proof/pro/orders/swapProof';
-import { BLANK_BYTES, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, NoteCryptoContext } from '../../types';
+import { BLANK_BYTES, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DEFAULT_VERSION, NoteCryptoContext } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { multiGetMerklePathAndRoot } from '../merkletree';
 import { hexlify32 } from '../../utils/util';
@@ -99,7 +99,7 @@ export class ProSwapService extends BaseContractService {
         const [pubKey, privKey] = await generateKeyPair(signature);
         const feeAmount = calcFeeAmount(swapInAmount, orderNote.feeRatio);
         const swapInNote = createNote(address, swapInAsset, swapInAmount - feeAmount, pubKey);
-        const darkSwapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey);
+        const darkSwapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey, DEFAULT_VERSION);
         return darkSwapMessage;
     }
 

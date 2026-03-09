@@ -96,7 +96,8 @@ export class RetailCreateMarketOrderService extends BaseContractService {
     swapInAsset: string,
     swapInMinAmount: bigint,
     signature: string,
-    cryptoContext: NoteCryptoContext
+    cryptoContext: NoteCryptoContext,
+    version: number
   ): Promise<{ context: RetailCreateMarketOrderContext; swapMessage: DarkSwapBobMarketMessage }> {
     const [pubKey, privKey] = await generateKeyPair(signature);
     const feeRatio = BigInt(await getFeeRatio(address, this._darkSwap));
@@ -108,7 +109,7 @@ export class RetailCreateMarketOrderService extends BaseContractService {
     context.minInAmount = swapInMinAmount;
     context.address = address;
 
-    const swapMessage = await generateRetailMarketSwapMessage(address, orderNote, swapInPartialNote, swapInMinAmount, pubKey, privKey);
+    const swapMessage = await generateRetailMarketSwapMessage(address, orderNote, swapInPartialNote, swapInMinAmount, pubKey, privKey, version);
     context.swapMessage = swapMessage;
     return { context, swapMessage };
   }

@@ -23,6 +23,7 @@ export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
         feeAmount: swapMessage.feeAmount.toString(),
         pubKey: [swapMessage.publicKey[0].toString(), swapMessage.publicKey[1].toString()],
         signature: swapMessage.signature,
+        version: swapMessage.version,
     });
 }
 
@@ -46,6 +47,7 @@ export function serializeDarkSwapBobMarketMessage(swapMessage: DarkSwapBobMarket
         minInAmount: swapMessage.minInAmount.toString(),
         pubKey: [swapMessage.publicKey[0].toString(), swapMessage.publicKey[1].toString()],
         signature: swapMessage.signature,
+        version: swapMessage.version,
     });
 }
 
@@ -104,6 +106,7 @@ export function deserializeDarkSwapMessage(serializedMessage: string): DarkSwapM
         signature: message.signature,
         publicKey: deserializePublicKey(message.pubKey),
         orderNullifier: message.orderNullifier,
+        version: message.version,
     };
 }
 
@@ -157,5 +160,6 @@ export function deserializeDarkSwapBobMarketMessage(serializedMessage: string): 
         minInAmount: BigInt(message.minInAmount),
         publicKey: deserializePublicKey(message.pubKey),
         signature: message.signature,
+        version: message.version,
     };
 }

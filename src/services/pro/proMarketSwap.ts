@@ -6,7 +6,7 @@ import { generateKeyPair } from '../../proof/keyService';
 import { createNote, EMPTY_NOTE, rebuildNote } from '../../proof/noteService';
 import { generateProMarketSwapProof } from '../../proof/pro/orders/marketSwapProof';
 import { ProSwapProofResult } from '../../proof/pro/orders/swapProof';
-import { BLANK_BYTES, DarkSwapBobMarketMessage, DarkSwapMarketMessage, DarkSwapNote, DarkSwapOrderNote, NoteCryptoContext } from '../../types';
+import { BLANK_BYTES, DarkSwapBobMarketMessage, DarkSwapMarketMessage, DarkSwapNote, DarkSwapOrderNote, DEFAULT_VERSION, NoteCryptoContext } from '../../types';
 import { hexlify32 } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { calcFeeAmount } from '../feeRatioService';
@@ -100,7 +100,7 @@ export class ProMarketSwapService extends BaseContractService {
         const [pubKey, privKey] = await generateKeyPair(signature);
         const feeAmount = calcFeeAmount(swapInAmount, orderNote.feeRatio);
         const swapInNote = createNote(address, swapInAsset, swapInAmount - feeAmount, pubKey);
-        const darkSwapMessage = await generateRetailMarketSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey);
+        const darkSwapMessage = await generateRetailMarketSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey, DEFAULT_VERSION);
         return darkSwapMessage;
     }
 

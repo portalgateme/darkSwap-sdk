@@ -73,7 +73,8 @@ export async function generateRetailMarketSwapMessage(
     swapInPartialNote: DarkSwapPartialNote,
     minInAmount: bigint,
     pubKey: [Fr, Fr],
-    privKey: Fr
+    privKey: Fr,
+    version: number
 ): Promise<DarkSwapBobMarketMessage> {
 
     const addressMod = encodeAddress(address);
@@ -99,6 +100,7 @@ export async function generateRetailMarketSwapMessage(
         minInAmount: minInAmount,
         publicKey: pubKey,
         signature: signatureToHexString(signature),
+        version: version,
     }
 }
 

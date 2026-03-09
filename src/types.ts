@@ -4,6 +4,8 @@ export type Hex = string;
 
 export const BLANK_BYTES = "0x";
 
+export const DEFAULT_VERSION = 2;
+
 export enum PROOF_DOMAIN {
     DEPOSIT = 10001,
     WITHDRAW = 10002,
@@ -76,24 +78,23 @@ export type BaseProofInput = {
     signature: any
 }
 
-export type DarkSwapMessage = {
+export type BaseSwapMessage = {
     address: string,
     orderNote: DarkSwapOrderNote,
     orderNullifier: string,
-    inNote: DarkSwapNote,
-    feeAmount: bigint,
     publicKey: [Fr, Fr],
     signature: string,
+    version?: number
 }
 
-export type DarkSwapBobMarketMessage = {
-    address: string,
-    orderNote: DarkSwapOrderNote,
-    orderNullifier: string,
+export type DarkSwapMessage = BaseSwapMessage & {
+    inNote: DarkSwapNote,
+    feeAmount: bigint,
+}
+
+export type DarkSwapBobMarketMessage = BaseSwapMessage & {
     inPartialNote: DarkSwapPartialNote,
     minInAmount: bigint,
-    publicKey: [Fr, Fr],
-    signature: string,
 }
 
 export type DarkSwapMarketMessage = {
