@@ -3,7 +3,7 @@ import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateRetailCancelOrderProof, RetailCancelOrderProofResult } from '../../proof/retail/cancelOrderProof';
-import { DarkSwapOrderNote, NoteCryptoContext } from '../../types';
+import { DarkSwapOrderNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { getMerklePathAndRoot } from '../merkletree';
 import { hexlify32 } from '../../utils/util';
@@ -12,9 +12,8 @@ class RetailCancelOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
   private _proof?: RetailCancelOrderProofResult;
 
-  constructor(signature: string, cryptoContext: NoteCryptoContext) {
+  constructor(signature: string) {
     super(signature);
-    this.noteCryptoContext = cryptoContext;
   }
 
   set orderNote(orderNote: DarkSwapOrderNote | undefined) {
@@ -43,9 +42,8 @@ export class RetailCancelOrderService extends BaseContractService {
     address: string,
     orderNote: DarkSwapOrderNote,
     signature: string,
-    cryptoContext: NoteCryptoContext
   ): Promise<{ context: RetailCancelOrderContext }> {
-    const context = new RetailCancelOrderContext(signature, cryptoContext);
+    const context = new RetailCancelOrderContext(signature);
     context.orderNote = orderNote;
     context.address = address;
     return { context };
