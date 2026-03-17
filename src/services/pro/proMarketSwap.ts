@@ -3,23 +3,24 @@ import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
-import { createNote, EMPTY_NOTE } from '../../proof/noteService';
-import { generateProSwapProof, ProSwapProofResult } from '../../proof/pro/orders/swapProof';
-import { BLANK_BYTES, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DEFAULT_VERSION, NoteCryptoContext } from '../../types';
-import { BaseContext, BaseContractService } from '../BaseService';
-import { multiGetMerklePathAndRoot } from '../merkletree';
+import { createNote, EMPTY_NOTE, rebuildNote } from '../../proof/noteService';
+import { generateProMarketSwapProof } from '../../proof/pro/orders/marketSwapProof';
+import { ProSwapProofResult } from '../../proof/pro/orders/swapProof';
+import { BLANK_BYTES, DarkSwapBobMarketMessage, DarkSwapMarketMessage, DarkSwapNote, DarkSwapOrderNote, DEFAULT_VERSION, NoteCryptoContext } from '../../types';
 import { hexlify32 } from '../../utils/util';
-import { generateRetailSwapMessage } from '../../proof/retail/depositOrderProof';
+import { BaseContext, BaseContractService } from '../BaseService';
 import { calcFeeAmount } from '../feeRatioService';
+import { multiGetMerklePathAndRoot } from '../merkletree';
+import { generateRetailMarketSwapMessage, generateRetailMarketSwapMessageForMc } from '../../proof/retail/depositMarketOrderProof';
 import { encryptNote } from '../noteCryptoService';
 
-class ProSwapContext extends BaseContext {
+class ProMarketSwapContext extends BaseContext {
     private _orderNote?: DarkSwapOrderNote;
     private _changeNote?: DarkSwapNote;
     private _swapInNote?: DarkSwapNote;
     private _proof?: ProSwapProofResult;
     private _bobAddress?: string;
-    private _bobSwapMessage?: DarkSwapMessage;
+    private _bobSwapMessage?: DarkSwapMarketMessage;
     private _aliceFeeAmount?: bigint;
 
     constructor(signature: string, noteCryptoContext: NoteCryptoContext) {
@@ -67,11 +68,11 @@ class ProSwapContext extends BaseContext {
         return this._proof;
     }
 
-    set bobSwapMessage(bobSwapMessage: DarkSwapMessage | undefined) {
+    set bobSwapMessage(bobSwapMessage: DarkSwapMarketMessage | undefined) {
         this._bobSwapMessage = bobSwapMessage;
     }
 
-    get bobSwapMessage(): DarkSwapMessage | undefined {
+    get bobSwapMessage(): DarkSwapMarketMessage | undefined {
         return this._bobSwapMessage;
     }
 
@@ -84,22 +85,36 @@ class ProSwapContext extends BaseContext {
     }
 }
 
-export class ProSwapService extends BaseContractService {
+export class ProMarketSwapService extends BaseContractService {
     constructor(_darkSwap: DarkSwap) {
         super(_darkSwap);
     }
 
-    public static async prepareProSwapMessageForBob(
+    public static async prepareProMarketSwapMessageForBob(
         address: string,
         orderNote: DarkSwapOrderNote,
         swapInAmount: bigint,
         swapInAsset: string,
         signature: string
-    ): Promise<DarkSwapMessage> {
+    ): Promise<DarkSwapBobMarketMessage> {
         const [pubKey, privKey] = await generateKeyPair(signature);
         const feeAmount = calcFeeAmount(swapInAmount, orderNote.feeRatio);
         const swapInNote = createNote(address, swapInAsset, swapInAmount - feeAmount, pubKey);
-        const darkSwapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey, DEFAULT_VERSION);
+        const darkSwapMessage = await generateRetailMarketSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey, DEFAULT_VERSION);
+        return darkSwapMessage;
+    }
+
+    public static async prepareProMarketSwapMessageForMc(
+        bobMessage: DarkSwapBobMarketMessage,
+        bobAmount: bigint,
+        mcAddress: string,
+        mcSignature: string
+    ): Promise<DarkSwapMarketMessage> {
+        const [pubKey, privKey] = await generateKeyPair(mcSignature);
+        const bobFeeAmount = calcFeeAmount(bobAmount, bobMessage.orderNote.feeRatio);
+        const bobSwapInNote = rebuildNote(bobMessage.inPartialNote, bobAmount - bobFeeAmount, bobMessage.publicKey);
+        const darkSwapMessage = await generateRetailMarketSwapMessageForMc(
+            mcAddress, bobMessage, bobSwapInNote, bobFeeAmount, pubKey, privKey);
         return darkSwapMessage;
     }
 
@@ -107,22 +122,22 @@ export class ProSwapService extends BaseContractService {
         address: string,
         orderNote: DarkSwapOrderNote,
         bobAddress: string,
-        bobSwapMessage: DarkSwapMessage,
+        bobSwapMessage: DarkSwapMarketMessage,
         signature: string,
         noteCryptoContext: NoteCryptoContext
-    ): Promise<{ context: ProSwapContext; swapInNote: DarkSwapNote, changeNote: DarkSwapNote, feeAmount: bigint }> {
+    ): Promise<{ context: ProMarketSwapContext; swapInNote: DarkSwapNote, changeNote: DarkSwapNote, feeAmount: bigint }> {
         if (!noteCryptoContext && !this._darkSwap.disableUploadNotes) {
             throw new DarkSwapError('Note crypto context is required');
         }
         const [pubKey] = await generateKeyPair(signature);
-        const swapOutAmount = bobSwapMessage.feeAmount + bobSwapMessage.inNote.amount;
-        const swapInAmount = bobSwapMessage.orderNote.amount;
+        const swapOutAmount = bobSwapMessage.bobFeeAmount + bobSwapMessage.bobInNote.amount;
+        const swapInAmount = bobSwapMessage.bobOrderNote.amount;
         const aliceFeeAmount = calcFeeAmount(swapInAmount, orderNote.feeRatio);
         const changeAmount = orderNote.amount - swapOutAmount;
         const changeNote = changeAmount == 0n ? EMPTY_NOTE : createNote(address, orderNote.asset, changeAmount, pubKey);
-        const swapInNote = createNote(address, bobSwapMessage.orderNote.asset, swapInAmount - aliceFeeAmount, pubKey);
+        const swapInNote = createNote(address, bobSwapMessage.bobOrderNote.asset, swapInAmount - aliceFeeAmount, pubKey);
 
-        const context = new ProSwapContext(signature, noteCryptoContext);
+        const context = new ProMarketSwapContext(signature, noteCryptoContext);
         context.orderNote = orderNote;
         context.swapInNote = swapInNote;
         context.changeNote = changeNote;
@@ -133,7 +148,7 @@ export class ProSwapService extends BaseContractService {
         return { context, swapInNote, changeNote, feeAmount: aliceFeeAmount };
     }
 
-    private async generateProof(context: ProSwapContext): Promise<void> {
+    private async generateProof(context: ProMarketSwapContext): Promise<void> {
         if (!context
             || !context.orderNote
             || !context.swapInNote
@@ -145,11 +160,11 @@ export class ProSwapService extends BaseContractService {
             throw new DarkSwapError('Invalid context');
         }
 
-        const merklePathes = await multiGetMerklePathAndRoot([context.orderNote.note, context.bobSwapMessage.orderNote.note], this._darkSwap);
+        const merklePathes = await multiGetMerklePathAndRoot([context.orderNote.note, context.bobSwapMessage.bobOrderNote.note], this._darkSwap);
         const orderNotePath = merklePathes[0];
         const bobOrderNotePath = merklePathes[1];
 
-        const proof = await generateProSwapProof({
+        const proof = await generateProMarketSwapProof({
             merkleRoot: orderNotePath.root,
             aliceAddress: context.address,
             aliceMerkleIndex: orderNotePath.index,
@@ -168,7 +183,7 @@ export class ProSwapService extends BaseContractService {
         context.proof = proof;
     }
 
-    public async execute(context: ProSwapContext): Promise<string> {
+    public async execute(context: ProMarketSwapContext): Promise<string> {
         await this.generateProof(context);
         if (!context
             || !context.orderNote
@@ -200,18 +215,21 @@ export class ProSwapService extends BaseContractService {
             hexlify32(context.changeNote.note),
             context.proof.aliceChangeNoteFooter,
             context.proof.bobOutNullifier,
-            hexlify32(context.bobSwapMessage.orderNote.feeRatio),
-            hexlify32(context.bobSwapMessage.inNote.note),
+            hexlify32(context.bobSwapMessage.bobOrderNote.feeRatio),
+            hexlify32(context.bobSwapMessage.bobInNote.note),
             context.proof.bobInNoteFooter,
-            [encryptedSwapInNote, encryptedChangeNote]
+            context.bobSwapMessage.mcWalletAddress,
+            [context.bobSwapMessage.mcPublicKey[0].toString(), context.bobSwapMessage.mcPublicKey[1].toString()],
+            [encryptedSwapInNote, encryptedChangeNote],
+            []
         ];
 
-        const estimatedGas = await contract.proSwap.estimateGas(
+        const estimatedGas = await contract.proMarketOrderSwap.estimateGas(
             swapArgs,
             context.proof.proof
         );
 
-        const tx = await contract.proSwap(
+        const tx = await contract.proMarketOrderSwap(
             swapArgs,
             context.proof.proof,
             { gasLimit: estimatedGas }

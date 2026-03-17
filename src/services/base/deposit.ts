@@ -8,12 +8,13 @@ import { DarkSwapError } from '../../entities';
 import { DepositProofResult, generateDepositProof } from '../../proof/basic/depositProof';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
-import { DarkSwapNote } from '../../types';
+import { BLANK_BYTES, DarkSwapNote, NoteCryptoContext } from '../../types';
 import { MAX_ALLOWANCE } from '../../utils/constants';
 import { hexlify32, isNativeAsset } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { EMPTY_PATH, getMerklePathAndRoot } from '../merkletree';
 import { refineGasLimit } from '../../utils/gasUtil';
+import { encryptNote } from '../noteCryptoService';
 
 export class DepositContext extends BaseContext {
   private _currentBalance?: DarkSwapNote;
@@ -21,8 +22,9 @@ export class DepositContext extends BaseContext {
   private _proof?: DepositProofResult;
   private _depositAmount?: bigint;
 
-  constructor(signature: string) {
+  constructor(signature: string, noteCryptoContext?: NoteCryptoContext) {
     super(signature);
+    this.noteCryptoContext = noteCryptoContext;
   }
 
   set currentBalance(currentBalance: DarkSwapNote | undefined) {
@@ -69,11 +71,16 @@ export class DepositService extends BaseContractService {
     depositAmount: bigint,
     walletAddress: string,
     signature: string,
+    noteCryptoContext?: NoteCryptoContext,
   ): Promise<{ context: DepositContext; newBalanceNote: DarkSwapNote }> {
+    if (!noteCryptoContext && !this._darkSwap.disableUploadNotes) {
+      throw new DarkSwapError('Note crypto context is required');
+    }
+
     const [pubKey] = await generateKeyPair(signature);
     const newBalanceAmount = depositAmount + currentBalance.amount;
     const newBalance = createNote(walletAddress, depositAsset, newBalanceAmount, pubKey);
-    const context = new DepositContext(signature);
+    const context = new DepositContext(signature, noteCryptoContext);
     context.currentBalance = currentBalance;
     context.newBalance = newBalance;
     context.address = walletAddress;
@@ -116,6 +123,16 @@ export class DepositService extends BaseContractService {
     ) {
       throw new DarkSwapError('Invalid context');
     }
+
+    if (!this._darkSwap.disableUploadNotes && !context.noteCryptoContext) {
+      throw new DarkSwapError('Note crypto context is required');
+    }
+
+    const encryptedNewBalanceNote =
+      this._darkSwap.disableUploadNotes ?
+        BLANK_BYTES :
+        encryptNote(context.newBalance, context.noteCryptoContext!);
+
     const signer = this._darkSwap.signer;
     const contract = new ethers.Contract(
       this._darkSwap.contracts.darkSwapAssetManager,
@@ -132,6 +149,7 @@ export class DepositService extends BaseContractService {
         context.proof.oldBalanceNullifier,
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
+        encryptedNewBalanceNote,
         context.proof.proof];
       const estimatedGas = await contract.deposit.estimateGas(
         ...depositArgs,
@@ -152,6 +170,7 @@ export class DepositService extends BaseContractService {
         context.proof.oldBalanceNullifier,
         hexlify32(context.newBalance.note),
         context.proof.newBalanceFooter,
+        encryptedNewBalanceNote,
         context.proof.proof
       ];
       const estimatedGas = await contract.deposit.estimateGas(

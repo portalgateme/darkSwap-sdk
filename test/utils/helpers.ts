@@ -1,8 +1,20 @@
 import { ethers } from "ethers";
-import { DarkSwap } from "../../src";
+import { createNoteCryptoContext, DarkSwap, deriveKey } from "../../src";
 import IERC20ABI from "../../src/abis/IERC20.json";
 
 const PROVIDER_URL = 'http://localhost:18544';
+
+const HARDHAT_CA = {
+    "mimc254": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "merkleTreeOperator": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "verifierHub": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
+    "eRC20AssetPool": "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
+    "eRC721AssetPool": "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
+    "eTHAssetPool": "0x59b670e9fA9D0A427751Af201D676719a970857b",
+    "darkSwapFeeAssetManager": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
+    "darkSwapMcManager": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
+    "darkSwapAssetManager": "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
+}
 
 export function getAliceWallet() {
     const walletPk = 'ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
@@ -26,10 +38,21 @@ export async function getBobSignature() {
     return await wallet.signMessage(message);
 }
 
+export async function getMcSignature() {
+    const wallet = getAliceWallet();
+    const message = 'Hello, matching engine!';
+    return await wallet.signMessage(message);
+}
+
+export async function getMcAddress() {
+    const wallet = getAliceWallet();
+    return wallet.address;
+}
+
 export async function getAliceWalletBalance(asset: string) {
     const wallet = getAliceWallet();
     const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
-    if(asset === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE') {
+    if (asset === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE') {
         return await provider.getBalance(wallet.address);
     } else {
         const contract = new ethers.Contract(asset, IERC20ABI.abi, provider);
@@ -37,7 +60,23 @@ export async function getAliceWalletBalance(asset: string) {
     }
 }
 
-export function getDarkSwapForAlice() {
+export async function getAliceNoteCryptoContext() {
+    const wallet = getAliceWallet();
+    const signature = await getAliceSignature();
+    const keyHex = deriveKey(signature, "DarkSwap Note Encryption Salt " + wallet.address);
+    const noteCryptoContext = createNoteCryptoContext(wallet.address, keyHex);
+    return noteCryptoContext;
+}
+
+export async function getBobNoteCryptoContext() {
+    const wallet = getBobWallet();
+    const signature = await getBobSignature();
+    const keyHex = deriveKey(signature, "DarkSwap Note Encryption Salt " + wallet.address);
+    const noteCryptoContext = createNoteCryptoContext(wallet.address, keyHex);
+    return noteCryptoContext;
+}
+
+export function getDarkSwapForAlice(disableUploadNotes: boolean = false) {
     const wallet = getAliceWallet();
     return new DarkSwap(
         wallet,
@@ -46,11 +85,11 @@ export function getDarkSwapForAlice() {
             priceOracle: '0x0000000000000000000000000000000000000000',
             ethAddress: '0x0000000000000000000000000000000000000000',
             nativeWrapper: '0x0000000000000000000000000000000000000000',
-            merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
-            darkSwapAssetManager: '0x6D39d71fF4ab56a4873febd34e1a3BDefc01b41e',
-            darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
-            drakSwapSubgraphUrl: '',
-        }
+            merkleTreeOperator: HARDHAT_CA.merkleTreeOperator,
+            darkSwapAssetManager: HARDHAT_CA.darkSwapAssetManager,
+            darkSwapFeeAssetManager: HARDHAT_CA.darkSwapFeeAssetManager
+        },
+        disableUploadNotes
     );
 }
 
@@ -63,10 +102,9 @@ export function getDarkSwapForBob() {
             priceOracle: '0x0000000000000000000000000000000000000000',
             ethAddress: '0x0000000000000000000000000000000000000000',
             nativeWrapper: '0x0000000000000000000000000000000000000000',
-            merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
-            darkSwapAssetManager: '0x6D39d71fF4ab56a4873febd34e1a3BDefc01b41e',
-            darkSwapFeeAssetManager: '0xb9b0c96e4E7181926D2A7ed331C9C346dfa59b4D',
-            drakSwapSubgraphUrl: '',
+            merkleTreeOperator: HARDHAT_CA.merkleTreeOperator,
+            darkSwapAssetManager: HARDHAT_CA.darkSwapAssetManager,
+            darkSwapFeeAssetManager: HARDHAT_CA.darkSwapFeeAssetManager
         }
     );
 }

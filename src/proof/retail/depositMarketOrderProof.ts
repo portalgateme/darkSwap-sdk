@@ -1,18 +1,16 @@
-import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
+import { Fr } from "../../aztec/fields/fields";
+import retailCreateOrderCircuit from "../../circuits/retail/dark_swap_retail_deposit_create_market_order_compiled_circuit.json";
+import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapBobMarketMessage, DarkSwapMarketMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapPartialNote, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
-import { bn_to_0xhex } from "../../utils/formatters";
-import { bn_to_hex } from "../../utils/formatters";
+import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";
 import { mimc_bn254 } from "../../utils/mimc";
 import { signatureToHexString, uint8ArrayToNumberArray } from "../../utils/proofUtils";
 import { generateProof, signMessage } from "../baseProofService";
 import { generateKeyPair } from "../keyService";
 import { calcNullifier, getNoteFooter } from "../noteService";
-import retailCreateOrderCircuit from "../../circuits/retail/dark_swap_retail_deposit_create_order_compiled_circuit.json";
-import { Fr } from "../../aztec/fields/fields";
 
-type RetailCreateOrderProofInput = BaseProofInput & {
+type RetailCreateMarketOrderProofInput = BaseProofInput & {
     deposit_out_note: string,
-    deposit_out_nullifier: string,
     deposit_out_note_footer: string,
     deposit_out_rho: string,
 
@@ -20,48 +18,77 @@ type RetailCreateOrderProofInput = BaseProofInput & {
     out_asset: string,
     out_amount: string,
     in_asset: string,
-    in_amount: string,
+    min_in_amount: string,
 
     //fee
     fee_ratio: string,
-    fee_amount: string,
 
     //swap in 
-    in_note: string,
     in_note_footer: string,
     in_rho: string,
 }
 
-export type RetailCreateOrderProofParam = BaseProofParam & {
+export type RetailCreateMarketOrderProofParam = BaseProofParam & {
     depositNote: DarkSwapOrderNote,
-    swapInNote: DarkSwapNote,
-    feeAmount: bigint
+    swapInPartialNote: DarkSwapPartialNote,
+    minInAmount: bigint
 }
 
-export type RetailCreateOrderProofResult = BaseProofResult & {
-    depositNullifier: string,
+export type RetailCreateMarketOrderProofResult = BaseProofResult & {
     depositFooter: string,
     swapInNoteFooter: string,
 }
 
-export async function generateRetailSwapMessage(
+export async function generateRetailMarketSwapMessageForMc(
+    mcAddress: string,
+    bobMessage: DarkSwapBobMarketMessage,
+    bobInNote: DarkSwapNote,
+    bobFeeAmount: bigint,
+    pubKey: [Fr, Fr],
+    privKey: Fr
+): Promise<DarkSwapMarketMessage> {
+    const message = bn_to_hex(mimc_bn254([
+        BigInt(PROOF_DOMAIN.MC_MARKET_SWAP),
+        bobInNote.amount + bobFeeAmount,
+    ]));
+    const signature = await signMessage(message, privKey);
+
+    return {
+        bobOrderNote: bobMessage.orderNote,
+        bobOrderNullifier: bobMessage.orderNullifier,
+        bobInNote: bobInNote,
+        bobMinInAmount: bobMessage.minInAmount,
+        bobFeeAmount: bobFeeAmount,
+        bobPublicKey: bobMessage.publicKey,
+        bobSignature: bobMessage.signature,
+        mcWalletAddress: mcAddress,
+        mcPublicKey: pubKey,
+        mcSignature: signatureToHexString(signature),
+    }
+}
+
+export async function generateRetailMarketSwapMessage(
     address: string,
     orderNote: DarkSwapOrderNote,
-    swapInNote: DarkSwapNote,
-    feeAmount: bigint,
+    swapInPartialNote: DarkSwapPartialNote,
+    minInAmount: bigint,
     pubKey: [Fr, Fr],
     privKey: Fr,
     version: number
-): Promise<DarkSwapMessage> {
+): Promise<DarkSwapBobMarketMessage> {
 
     const addressMod = encodeAddress(address);
+    const inAssetMod = encodeAddress(swapInPartialNote.asset);
     const orderNoteNullifier = calcNullifier(orderNote.rho, pubKey);
+    const inNoteFooter = getNoteFooter(swapInPartialNote.rho, pubKey);
     const message = bn_to_hex(mimc_bn254([
-        BigInt(PROOF_DOMAIN.RETAIL_CREATE_ORDER),
+        BigInt(PROOF_DOMAIN.RETAIL_CREATE_MAKER_ORDER),
         addressMod,
         orderNoteNullifier,
         orderNote.feeRatio,
-        swapInNote.note,
+        inAssetMod,
+        minInAmount,
+        inNoteFooter
     ]));
     const signature = await signMessage(message, privKey);
 
@@ -69,15 +96,15 @@ export async function generateRetailSwapMessage(
         address: address,
         orderNote: orderNote,
         orderNullifier: bn_to_0xhex(orderNoteNullifier),
-        inNote: swapInNote,
-        feeAmount: feeAmount,
+        inPartialNote: swapInPartialNote,
+        minInAmount: minInAmount,
         publicKey: pubKey,
         signature: signatureToHexString(signature),
         version: version,
     }
 }
 
-export async function generateRetailCreateOrderProof(param: RetailCreateOrderProofParam): Promise<RetailCreateOrderProofResult> {
+export async function generateRetailCreateMarketOrderProof(param: RetailCreateMarketOrderProofParam): Promise<RetailCreateMarketOrderProofResult> {
     if (param.depositNote.amount <= 0n) {
         throw new DarkSwapProofError("Deposit amount must be greater than 0");
     }
@@ -86,41 +113,43 @@ export async function generateRetailCreateOrderProof(param: RetailCreateOrderPro
         throw new DarkSwapProofError("Fee ratio must be greater or equal to 0");
     }
 
+    if (param.minInAmount <= 0n) {
+        throw new DarkSwapProofError("Min in amount must be greater than 0");
+    }
+
     const [[fuzkPubKeyX, fuzkPubKeyY], fuzkPriKey] = await generateKeyPair(param.signedMessage);
 
-    const depositNullifier = calcNullifier(param.depositNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
     const depositFooter = getNoteFooter(param.depositNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
-    const inAmount = param.feeAmount + param.swapInNote.amount;
 
-    const swapInNoteFooter = getNoteFooter(param.swapInNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
+    const swapInNoteFooter = getNoteFooter(param.swapInPartialNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
 
     const addressMod = encodeAddress(param.address);
+    const inAssetMod = encodeAddress(param.swapInPartialNote.asset);
     const message = bn_to_hex(mimc_bn254([
-        BigInt(PROOF_DOMAIN.RETAIL_CREATE_ORDER),
+        BigInt(PROOF_DOMAIN.RETAIL_CREATE_MAKER_ORDER),
         addressMod,
         param.depositNote.note,
         param.depositNote.feeRatio,
-        param.swapInNote.note,
+        inAssetMod,
+        param.minInAmount,
+        swapInNoteFooter
     ]));
     const signature = await signMessage(message, fuzkPriKey);
 
-    const inputs: RetailCreateOrderProofInput = {
+    const inputs: RetailCreateMarketOrderProofInput = {
         address: bn_to_0xhex(addressMod),
         deposit_out_note: bn_to_0xhex(param.depositNote.note),
-        deposit_out_nullifier: bn_to_0xhex(depositNullifier),
         deposit_out_note_footer: bn_to_0xhex(depositFooter),
         deposit_out_rho: bn_to_0xhex(param.depositNote.rho),
 
         out_asset: bn_to_0xhex(encodeAddress(param.depositNote.asset)),
         out_amount: bn_to_0xhex(param.depositNote.amount),
-        in_asset: bn_to_0xhex(encodeAddress(param.swapInNote.asset)),
-        in_amount: bn_to_0xhex(inAmount),
+        in_asset: bn_to_0xhex(inAssetMod),
+        min_in_amount: bn_to_0xhex(param.minInAmount),
 
-        in_note: bn_to_0xhex(param.swapInNote.note),
         in_note_footer: bn_to_0xhex(swapInNoteFooter),
-        in_rho: bn_to_0xhex(param.swapInNote.rho),
+        in_rho: bn_to_0xhex(param.swapInPartialNote.rho),
         fee_ratio: bn_to_0xhex(param.depositNote.feeRatio),
-        fee_amount: bn_to_0xhex(param.feeAmount),
 
         pub_key: [fuzkPubKeyX.toString(), fuzkPubKeyY.toString()],
         signature: uint8ArrayToNumberArray(signature),
@@ -128,7 +157,6 @@ export async function generateRetailCreateOrderProof(param: RetailCreateOrderPro
     const proof = await generateProof(retailCreateOrderCircuit, inputs);
     return {
         ...proof,
-        depositNullifier: inputs.deposit_out_nullifier,
         depositFooter: inputs.deposit_out_note_footer,
         swapInNoteFooter: inputs.in_note_footer,
     }

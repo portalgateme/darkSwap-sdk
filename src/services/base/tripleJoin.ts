@@ -5,11 +5,12 @@ import { DarkSwapError } from '../../entities';
 import { generateTripleJoinProof, TripleJoinProofResult } from '../../proof/basic/tripleJoinProof';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
-import { DarkSwapNote } from '../../types';
+import { BLANK_BYTES, DarkSwapNote, NoteCryptoContext } from '../../types';
 import { hexlify32, isAddressEquals } from '../../utils/util';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { multiGetMerklePathAndRoot } from '../merkletree';
 import { refineGasLimit } from '../../utils/gasUtil';
+import { encryptNote } from '../noteCryptoService';
 
 class TripleJoinContext extends BaseContext {
   private _inNote1?: DarkSwapNote;
@@ -18,8 +19,9 @@ class TripleJoinContext extends BaseContext {
   private _outNote?: DarkSwapNote;
   private _proof?: TripleJoinProofResult;
 
-  constructor(signature: string) {
+  constructor(signature: string, noteCryptoContext?: NoteCryptoContext) {
     super(signature);
+    this.noteCryptoContext = noteCryptoContext;
   }
 
   set inNote1(note: DarkSwapNote | undefined) {
@@ -74,8 +76,13 @@ export class TripleJoinService extends BaseContractService {
     inNote1: DarkSwapNote,
     inNote2: DarkSwapNote,
     inNote3: DarkSwapNote,
-    signature: string
+    signature: string,
+    noteCryptoContext?: NoteCryptoContext
   ): Promise<{ context: TripleJoinContext; outNote: DarkSwapNote }> {
+    if (!noteCryptoContext && !this._darkSwap.disableUploadNotes) {
+      throw new DarkSwapError('Note crypto context is required');
+    }
+
     if (!isAddressEquals(inNote1.asset, inNote2.asset)) {
       throw new DarkSwapError('inNote1 and inNote2 must have the same asset');
     }
@@ -86,7 +93,7 @@ export class TripleJoinService extends BaseContractService {
 
     const [pubKey] = await generateKeyPair(signature);
     const outNote = createNote(address, inNote1.asset, inNote1.amount + inNote2.amount + inNote3.amount, pubKey);
-    const context = new TripleJoinContext(signature);
+    const context = new TripleJoinContext(signature, noteCryptoContext);
     context.inNote1 = inNote1;
     context.inNote2 = inNote2;
     context.inNote3 = inNote3;
@@ -141,6 +148,15 @@ export class TripleJoinService extends BaseContractService {
       throw new DarkSwapError('Invalid context');
     }
 
+    if (!this._darkSwap.disableUploadNotes && !context.noteCryptoContext) {
+      throw new DarkSwapError('Note crypto context is required');
+    }
+
+    const encryptedNewBalanceNote =
+      this._darkSwap.disableUploadNotes ?
+        BLANK_BYTES :
+        encryptNote(context.outNote, context.noteCryptoContext!);
+
     const contract = new ethers.Contract(
       this._darkSwap.contracts.darkSwapAssetManager,
       DarkSwapAssetManagerAbi.abi,
@@ -156,6 +172,7 @@ export class TripleJoinService extends BaseContractService {
       ],
       hexlify32(context.outNote.note),
       context.proof.outNoteFooter,
+      encryptedNewBalanceNote,
       context.proof.proof
     ];
 

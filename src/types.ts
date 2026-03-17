@@ -2,6 +2,10 @@ import { Fr } from "./aztec/fields/fields";
 
 export type Hex = string;
 
+export const BLANK_BYTES = "0x";
+
+export const DEFAULT_VERSION = 2;
+
 export enum PROOF_DOMAIN {
     DEPOSIT = 10001,
     WITHDRAW = 10002,
@@ -12,7 +16,10 @@ export enum PROOF_DOMAIN {
     RETAIL_CANCEL_ORDER = 10007,
     JOIN = 10008,
     TRIPLE_JOIN = 10009,
-    RETAIL_SWAP = 10010
+    RETAIL_SWAP = 10010,
+    PAIR_JOIN = 10011,
+    RETAIL_CREATE_MAKER_ORDER = 10012,
+    MC_MARKET_SWAP = 10100
 }
 
 export const EMPTY_NULLIFIER = 0n;
@@ -28,9 +35,16 @@ export class DarkSwapProofError extends Error {
     }
 }
 
+export type DarkSwapPartialNote = {
+    address: string,
+    rho: bigint,
+    asset: string,
+}
+
 export type DarkSwapNote = CreateNoteParam & {
     note: bigint,
 }
+
 export type DarkSwapOrderNote = DarkSwapNote & {
     feeRatio: bigint,
 }
@@ -48,7 +62,6 @@ export type CreateNoteParam = {
 
 export type DarkSwapNoteExt = DarkSwapNote & { footer: bigint }
 
-
 export type BaseProofParam = {
     address: string,
     signedMessage: string,
@@ -65,12 +78,39 @@ export type BaseProofInput = {
     signature: any
 }
 
-export type DarkSwapMessage = {
+export type BaseSwapMessage = {
     address: string,
     orderNote: DarkSwapOrderNote,
     orderNullifier: string,
-    inNote: DarkSwapNote,
-    feeAmount: bigint,
     publicKey: [Fr, Fr],
     signature: string,
+    version?: number
+}
+
+export type DarkSwapMessage = BaseSwapMessage & {
+    inNote: DarkSwapNote,
+    feeAmount: bigint,
+}
+
+export type DarkSwapBobMarketMessage = BaseSwapMessage & {
+    inPartialNote: DarkSwapPartialNote,
+    minInAmount: bigint,
+}
+
+export type DarkSwapMarketMessage = {
+    bobOrderNote: DarkSwapOrderNote,
+    bobOrderNullifier: string,
+    bobInNote: DarkSwapNote,
+    bobMinInAmount: bigint,
+    bobFeeAmount: bigint,
+    bobPublicKey: [Fr, Fr],
+    bobSignature: string,
+    mcWalletAddress: string,
+    mcPublicKey: [Fr, Fr],
+    mcSignature: string,
+}
+
+export type NoteCryptoContext = {
+    address: string,
+    keyHex: string
 }

@@ -1,28 +1,27 @@
 import { ethers } from 'ethers';
 import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
+import ERC20Abi from '../../abis/IERC20.json';
+import ERC20_USDT from '../../abis/IERC20_USDT.json';
+import { getConfirmations, legacyTokenConfig } from '../../config';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote, createOrderNoteExt, validateOrderNoteWithPubKey } from '../../proof/noteService';
-import { generateRetailCreateOrderProof, generateRetailSwapMessage, RetailCreateOrderProofResult } from '../../proof/retail/depositOrderProof';
-import { DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, NoteCryptoContext } from '../../types';
-import { BaseContext, BaseContractService } from '../BaseService';
-import { calcFeeAmount, getFeeRatio } from '../feeRatioService';
-import { hexlify32 } from '../../utils/util';
-import { bn_to_0xhex } from '../../utils/formatters';
-import { isNativeAsset } from '../../utils/util';
-import { getConfirmations, legacyTokenConfig } from '../../config';
+import { generateRetailCreateMarketOrderProof, generateRetailMarketSwapMessage, RetailCreateMarketOrderProofResult } from '../../proof/retail/depositMarketOrderProof';
+import { DarkSwapBobMarketMessage, DarkSwapOrderNote, DarkSwapPartialNote, NoteCryptoContext } from '../../types';
 import { MAX_ALLOWANCE } from '../../utils/constants';
-import ERC20Abi from '../../abis/IERC20.json';
-import ERC20_USDT from '../../abis/IERC20_USDT.json';
-import { encryptNote, encryptOrderNote } from '../noteCryptoService';
+import { bn_to_0xhex } from '../../utils/formatters';
+import { hexlify32, isNativeAsset } from '../../utils/util';
+import { BaseContext, BaseContractService } from '../BaseService';
+import { getFeeRatio } from '../feeRatioService';
+import { encryptOrderNote, encryptPartialNote } from '../noteCryptoService';
 
-class RetailCreateOrderContext extends BaseContext {
+class RetailCreateMarketOrderContext extends BaseContext {
   private _orderNote?: DarkSwapOrderNote;
-  private _swapInNote?: DarkSwapNote;
-  private _proof?: RetailCreateOrderProofResult;
-  private _feeAmount?: bigint;
-  private _swapMessage?: DarkSwapMessage;
+  private _swapInPartialNote?: DarkSwapPartialNote;
+  private _proof?: RetailCreateMarketOrderProofResult;
+  private _minInAmount?: bigint;
+  private _swapMessage?: DarkSwapBobMarketMessage;
 
   constructor(signature: string, cryptoContext: NoteCryptoContext) {
     super(signature);
@@ -37,54 +36,54 @@ class RetailCreateOrderContext extends BaseContext {
     return this._orderNote;
   }
 
-  set swapInNote(swapInNote: DarkSwapNote | undefined) {
-    this._swapInNote = swapInNote;
+  set swapInPartialNote(swapInPartialNote: DarkSwapPartialNote | undefined) {
+    this._swapInPartialNote = swapInPartialNote;
   }
 
-  get swapInNote(): DarkSwapNote | undefined {
-    return this._swapInNote;
+  get swapInPartialNote(): DarkSwapPartialNote | undefined {
+    return this._swapInPartialNote;
   }
 
-  set feeAmount(feeAmount: bigint | undefined) {
-    this._feeAmount = feeAmount;
+  set minInAmount(minInAmount: bigint | undefined) {
+    this._minInAmount = minInAmount;
   }
 
-  get feeAmount(): bigint | undefined {
-    return this._feeAmount;
+  get minInAmount(): bigint | undefined {
+    return this._minInAmount;
   }
 
-  set proof(proof: RetailCreateOrderProofResult | undefined) {
+  set proof(proof: RetailCreateMarketOrderProofResult | undefined) {
     this._proof = proof;
   }
 
-  get proof(): RetailCreateOrderProofResult | undefined {
+  get proof(): RetailCreateMarketOrderProofResult | undefined {
     return this._proof;
   }
 
-  set swapMessage(swapMessage: DarkSwapMessage | undefined) {
+  set swapMessage(swapMessage: DarkSwapBobMarketMessage | undefined) {
     this._swapMessage = swapMessage;
   }
 
-  get swapMessage(): DarkSwapMessage | undefined {
+  get swapMessage(): DarkSwapBobMarketMessage | undefined {
     return this._swapMessage;
   }
 }
 
-export class RetailCreateOrderService extends BaseContractService {
+export class RetailCreateMarketOrderService extends BaseContractService {
   constructor(_darkSwap: DarkSwap) {
     super(_darkSwap);
   }
 
-  public async rebuildContextFromSwapMessage(swapMessage: DarkSwapMessage, signature: string, cryptoContext: NoteCryptoContext) {
+  public async rebuildContextFromSwapMessage(swapMessage: DarkSwapBobMarketMessage, signature: string, cryptoContext: NoteCryptoContext) {
     const [pubKey] = await generateKeyPair(signature);
     //validate the swapMessage is by this signature
-    if(!validateOrderNoteWithPubKey(swapMessage.orderNote, pubKey)) {
+    if (!validateOrderNoteWithPubKey(swapMessage.orderNote, pubKey)) {
       throw new DarkSwapError('SwapMessage does not belong to this wallet');
     }
-    const context = new RetailCreateOrderContext(signature, cryptoContext);
+    const context = new RetailCreateMarketOrderContext(signature, cryptoContext);
     context.orderNote = swapMessage.orderNote;
-    context.swapInNote = swapMessage.inNote;
-    context.feeAmount = swapMessage.feeAmount;
+    context.swapInPartialNote = swapMessage.inPartialNote;
+    context.minInAmount = swapMessage.minInAmount;
     context.address = swapMessage.address;
     await this.generateProof(context);
     return context;
@@ -95,49 +94,47 @@ export class RetailCreateOrderService extends BaseContractService {
     depositAsset: string,
     depositAmount: bigint,
     swapInAsset: string,
-    swapInAmount: bigint,
+    swapInMinAmount: bigint,
     signature: string,
     cryptoContext: NoteCryptoContext,
     version: number
-  ): Promise<{ context: RetailCreateOrderContext; swapMessage: DarkSwapMessage }> {
+  ): Promise<{ context: RetailCreateMarketOrderContext; swapMessage: DarkSwapBobMarketMessage }> {
     const [pubKey, privKey] = await generateKeyPair(signature);
     const feeRatio = BigInt(await getFeeRatio(address, this._darkSwap));
     const orderNote = createOrderNoteExt(address, depositAsset, depositAmount, feeRatio, pubKey);
-    const feeAmount = calcFeeAmount(swapInAmount, feeRatio);
-    const realSwapInAmount = swapInAmount - feeAmount
-    const swapInNote = createNote(address, swapInAsset, realSwapInAmount, pubKey);
-    const context = new RetailCreateOrderContext(signature, cryptoContext);
+    const swapInPartialNote = createNote(address, swapInAsset, swapInMinAmount, pubKey);
+    const context = new RetailCreateMarketOrderContext(signature, cryptoContext);
     context.orderNote = orderNote;
-    context.swapInNote = swapInNote;
-    context.feeAmount = feeAmount;
+    context.swapInPartialNote = swapInPartialNote;
+    context.minInAmount = swapInMinAmount;
     context.address = address;
 
-    const swapMessage = await generateRetailSwapMessage(address, orderNote, swapInNote, feeAmount, pubKey, privKey, version);
+    const swapMessage = await generateRetailMarketSwapMessage(address, orderNote, swapInPartialNote, swapInMinAmount, pubKey, privKey, version);
     context.swapMessage = swapMessage;
     return { context, swapMessage };
   }
 
-  private async generateProof(context: RetailCreateOrderContext): Promise<void> {
+  private async generateProof(context: RetailCreateMarketOrderContext): Promise<void> {
     if (!context
       || !context.orderNote
-      || !context.swapInNote
+      || !context.swapInPartialNote
       || !context.address
-      || !context.feeAmount
+      || !context.minInAmount
       || !context.signature) {
       throw new DarkSwapError('Invalid context');
     }
 
-    const proof = await generateRetailCreateOrderProof({
+    const proof = await generateRetailCreateMarketOrderProof({
       depositNote: context.orderNote,
-      swapInNote: context.swapInNote,
+      swapInPartialNote: context.swapInPartialNote,
       address: context.address,
       signedMessage: context.signature,
-      feeAmount: context.feeAmount
+      minInAmount: context.minInAmount
     });
     context.proof = proof;
   }
 
-  public async allowance(context: RetailCreateOrderContext) {
+  public async allowance(context: RetailCreateMarketOrderContext) {
     if (!context || !context.orderNote || !context.address || !context.signature || !context.proof) {
       throw new DarkSwapError('Invalid context');
     }
@@ -162,14 +159,14 @@ export class RetailCreateOrderService extends BaseContractService {
     }
   }
 
-  public async execute(context: RetailCreateOrderContext): Promise<string> {
+  public async execute(context: RetailCreateMarketOrderContext): Promise<string> {
     await this.generateProof(context);
-    if (!context || !context.orderNote || !context.swapInNote || !context.proof || !context.noteCryptoContext) {
+    if (!context || !context.orderNote || !context.swapInPartialNote || !context.proof || !context.noteCryptoContext) {
       throw new DarkSwapError('Invalid context');
     }
 
     const encryptedOrderNote = encryptOrderNote(context.orderNote, context.noteCryptoContext);
-    const encryptedSwapInNote = encryptNote(context.swapInNote, context.noteCryptoContext);
+    const encryptedSwapInPartialNote = encryptPartialNote(context.swapInPartialNote, context.noteCryptoContext);
 
     const contract = new ethers.Contract(
       this._darkSwap.contracts.darkSwapAssetManager,
@@ -182,17 +179,17 @@ export class RetailCreateOrderService extends BaseContractService {
     } else {
       await this.allowance(context);
     }
-    const tx = await contract.retailDepositCreateOrder(
+    
+    const tx = await contract.retailDepositCreateMarketOrder(
       [
         hexlify32(context.orderNote.note),
         context.proof.depositFooter,
         context.orderNote.asset,
         bn_to_0xhex(context.orderNote.amount),
-        hexlify32(context.swapInNote.note),
         context.proof.swapInNoteFooter,
         [
           encryptedOrderNote,
-          encryptedSwapInNote
+          encryptedSwapInPartialNote
         ]
       ],
       context.proof.proof,

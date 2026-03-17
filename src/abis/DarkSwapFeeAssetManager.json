@@ -61,6 +61,44 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": false,
+          "internalType": "address",
+          "name": "vip",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "discount",
+          "type": "uint256"
+        }
+      ],
+      "name": "AddVip",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address[]",
+          "name": "vips",
+          "type": "address[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "discounts",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "AddVips",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
           "indexed": true,
           "internalType": "address",
           "name": "previousOwner",
@@ -77,6 +115,32 @@
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "vip",
+          "type": "address"
+        }
+      ],
+      "name": "RemoveVip",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address[]",
+          "name": "vips",
+          "type": "address[]"
+        }
+      ],
+      "name": "RemoveVips",
+      "type": "event"
+    },
+    {
       "stateMutability": "payable",
       "type": "fallback"
     },
@@ -88,12 +152,30 @@
           "type": "address"
         },
         {
-          "internalType": "uint8",
-          "name": "level",
-          "type": "uint8"
+          "internalType": "uint256",
+          "name": "discount",
+          "type": "uint256"
         }
       ],
-      "name": "addMarketMaker",
+      "name": "addVip",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "wallets",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "discounts",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "addVips",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -149,16 +231,16 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_wallet",
+          "name": "wallet",
           "type": "address"
         }
       ],
-      "name": "getMaketMakerRegistration",
+      "name": "getServiceFeePercentage",
       "outputs": [
         {
-          "internalType": "uint8",
+          "internalType": "uint256",
           "name": "",
-          "type": "uint8"
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -172,7 +254,26 @@
           "type": "address"
         }
       ],
-      "name": "getServiceFeePercentage",
+      "name": "getVipDiscount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_wallet",
+          "type": "address"
+        }
+      ],
+      "name": "getVipRegistration",
       "outputs": [
         {
           "internalType": "uint256",
@@ -227,7 +328,20 @@
           "type": "address"
         }
       ],
-      "name": "removeMarketMaker",
+      "name": "removeVip",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "wallets",
+          "type": "address[]"
+        }
+      ],
+      "name": "removeVips",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -242,17 +356,12 @@
     {
       "inputs": [
         {
-          "internalType": "uint8",
-          "name": "level",
-          "type": "uint8"
-        },
-        {
           "internalType": "uint256",
-          "name": "feePercent",
+          "name": "feePercentage",
           "type": "uint256"
         }
       ],
-      "name": "setServiceFeePercent",
+      "name": "setServiceFeePercentage",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

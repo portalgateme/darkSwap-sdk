@@ -44,6 +44,11 @@
           "internalType": "address",
           "name": "initialOwner",
           "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "mcManager",
+          "type": "address"
         }
       ],
       "stateMutability": "nonpayable",
@@ -245,6 +250,37 @@
       "inputs": [
         {
           "indexed": false,
+          "internalType": "bytes32[2]",
+          "name": "nullifierIn1",
+          "type": "bytes32[2]"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32[2]",
+          "name": "nullifierIn2",
+          "type": "bytes32[2]"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "noteOut1",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "noteOut2",
+          "type": "bytes32"
+        }
+      ],
+      "name": "DarkSwapPairJoin",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
           "internalType": "address",
           "name": "owner",
           "type": "address"
@@ -346,6 +382,18 @@
           "internalType": "address",
           "name": "owner",
           "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "asset",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
         },
         {
           "indexed": false,
@@ -542,6 +590,11 @@
         },
         {
           "internalType": "bytes",
+          "name": "_encryptedNote",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
           "name": "_proof",
           "type": "bytes"
         }
@@ -566,6 +619,11 @@
         {
           "internalType": "uint256",
           "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_feeRatio",
           "type": "uint256"
         },
         {
@@ -615,6 +673,11 @@
           "internalType": "bytes32",
           "name": "_accountNoteFooter",
           "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_encryptedNote",
+          "type": "bytes"
         },
         {
           "internalType": "bytes",
@@ -742,6 +805,11 @@
         },
         {
           "internalType": "bytes",
+          "name": "_encryptedNote",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
           "name": "_proof",
           "type": "bytes"
         }
@@ -762,6 +830,66 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "merkleRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32[2]",
+              "name": "nullifierIn1",
+              "type": "bytes32[2]"
+            },
+            {
+              "internalType": "bytes32[2]",
+              "name": "nullifierIn2",
+              "type": "bytes32[2]"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "noteOut1",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "noteOut2",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "noteFooter1",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "noteFooter2",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "encryptdNotes",
+              "type": "bytes[]"
+            }
+          ],
+          "internalType": "struct DarkSwapAssetManager.PairJoinArgs",
+          "name": "_args",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "pairJoin",
+      "outputs": [],
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -797,6 +925,11 @@
               "internalType": "bytes32",
               "name": "orderNoteFooter",
               "type": "bytes32"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "encryptdNotes",
+              "type": "bytes[]"
             }
           ],
           "internalType": "struct DarkSwapAssetManager.ProCreateOrderArgs",
@@ -872,6 +1005,106 @@
               "internalType": "bytes32",
               "name": "bobInNoteFooter",
               "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "mc",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes32[2]",
+              "name": "mcPubKeys",
+              "type": "bytes32[2]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "aliceEncryptedNotes",
+              "type": "bytes[]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "bobEncryptedNodtes",
+              "type": "bytes[]"
+            }
+          ],
+          "internalType": "struct DarkSwapAssetManager.ProMarketOrderSwapArgs",
+          "name": "_args",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "proMarketOrderSwap",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "merkleRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "aliceFeeRatio",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceChangeNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceChangeNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "bobFeeRatio",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobInNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "aliceEncryptedNotes",
+              "type": "bytes[]"
             }
           ],
           "internalType": "struct DarkSwapAssetManager.ProSwapArgs",
@@ -940,6 +1173,56 @@
             },
             {
               "internalType": "bytes32",
+              "name": "inNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "encryptdNotes",
+              "type": "bytes[]"
+            }
+          ],
+          "internalType": "struct DarkSwapAssetManager.RetailDepositCreateMarketOrderArgs",
+          "name": "_args",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "retailDepositCreateMarketOrder",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "depositOutNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "depositOutNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "outAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "outAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
               "name": "inNote",
               "type": "bytes32"
             },
@@ -947,6 +1230,11 @@
               "internalType": "bytes32",
               "name": "inNoteFooter",
               "type": "bytes32"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "encryptdNotes",
+              "type": "bytes[]"
             }
           ],
           "internalType": "struct DarkSwapAssetManager.RetailDepositCreateOrderArgs",
@@ -975,7 +1263,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "aliceFeeRation",
+              "name": "aliceFeeRatio",
               "type": "uint256"
             },
             {
@@ -995,7 +1283,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "bobFeeRation",
+              "name": "bobFeeRatio",
               "type": "uint256"
             },
             {
@@ -1138,6 +1426,11 @@
           "internalType": "bytes32",
           "name": "_remainingNoteFooter",
           "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_encryptedNote",
+          "type": "bytes"
         },
         {
           "internalType": "bytes",

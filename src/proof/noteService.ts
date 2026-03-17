@@ -1,5 +1,5 @@
 import { hexlify } from 'ethers'
-import { DarkSwapNote, DarkSwapNoteExt, DarkSwapOrderNote } from '../types'
+import { DarkSwapNote, DarkSwapNoteExt, DarkSwapOrderNote, DarkSwapPartialNote } from '../types'
 import { P } from '../utils/constants'
 import { encodeAddress } from '../utils/encoders'
 import { mimc_bn254 } from '../utils/mimc'
@@ -27,6 +27,38 @@ export const EMPTY_NOTE: DarkSwapNote = {
   note: 0n,
   amount: 0n,
   asset: '0x0000000000000000000000000000000000000000',
+}
+
+export function createPartialNote(
+  address: string,
+  asset: string
+): DarkSwapPartialNote {
+  const rho = generateRho()
+  return {
+    address,
+    rho,
+    asset
+  }
+}
+
+export function rebuildNote(
+  partialNote: DarkSwapPartialNote,
+  amount: bigint,
+  fuzkPubKey: [Fr, Fr]
+): DarkSwapNoteExt {
+  const footer = getNoteFooter(partialNote.rho, fuzkPubKey)
+
+  const addressMod = encodeAddress(partialNote.address)
+  const assetMod = encodeAddress(partialNote.asset)
+  const note = mimc_bn254([DOMAIN_NOTE, addressMod, assetMod, amount, footer])
+  return {
+    address: partialNote.address,
+    rho: partialNote.rho,
+    note,
+    asset: partialNote.asset,
+    amount,
+    footer,
+  }
 }
 
 export function createNote(

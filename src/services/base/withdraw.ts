@@ -5,7 +5,7 @@ import { DarkSwapError } from '../../entities';
 import { generateWithdrawProof, WithdrawProofResult } from '../../proof/basic/withdrawProof';
 import { generateKeyPair } from '../../proof/keyService';
 import { createNote } from '../../proof/noteService';
-import { DarkSwapNote } from '../../types';
+import { BLANK_BYTES, DarkSwapNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { getMerklePathAndRoot } from '../merkletree';
 import { hexlify32 } from '../../utils/util';
@@ -115,6 +115,7 @@ export class WithdrawService extends BaseContractService {
       context.proof.oldBalanceNullifier,
       hexlify32(context.newBalance.note),
       context.proof.newBalanceFooter,
+      BLANK_BYTES,
       context.proof.proof
     );
     await tx.wait();

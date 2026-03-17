@@ -1,5 +1,5 @@
 import { assert, describe, it } from 'vitest';
-import { getAliceSignature, getAliceWallet, getDarkSwapForAlice } from "../../utils/helpers";
+import { getAliceNoteCryptoContext, getAliceSignature, getAliceWallet, getDarkSwapForAlice } from "../../utils/helpers";
 import { EMPTY_NOTE } from '../../../src/proof/noteService';
 import { DepositService, NoteOnChainStatus, ProCancelOrderService, ProCreateOrderService } from '../../../src';
 import { getNoteOnChainStatusBySignature } from '../../../src/services/noteService';
@@ -11,9 +11,10 @@ describe('CreateOrderService', () => {
         const asset = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
         const darkSwap = getDarkSwapForAlice();
+        const noteCryptoContext = await getAliceNoteCryptoContext();
         const depositAmount = 2000000000000000000n;
         const depositService = new DepositService(darkSwap);
-        const { context, newBalanceNote } = await depositService.prepare(EMPTY_NOTE, asset, depositAmount, wallet.address, signature);
+        const { context, newBalanceNote } = await depositService.prepare(EMPTY_NOTE, asset, depositAmount, wallet.address, signature, noteCryptoContext);
         await depositService.execute(context);
         assert.equal(newBalanceNote.amount, depositAmount);
         const onChainStatus = await getNoteOnChainStatusBySignature(darkSwap, newBalanceNote, signature);
@@ -23,7 +24,7 @@ describe('CreateOrderService', () => {
         const swapInAsset = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
         const swapInAmount = 2000000000000000000n;
         const createOrderService = new ProCreateOrderService(darkSwap);
-        const { context:context2, orderNote, newBalance } = await createOrderService.prepare(wallet.address,asset,orderAmount,swapInAsset,swapInAmount,newBalanceNote, signature);
+        const { context:context2, orderNote, newBalance } = await createOrderService.prepare(wallet.address,asset,orderAmount,swapInAsset,swapInAmount,newBalanceNote, signature, noteCryptoContext);
         await createOrderService.execute(context2);
         assert.equal(newBalance.amount, depositAmount-orderAmount);
         assert.equal(orderNote.amount, orderAmount);
@@ -31,7 +32,7 @@ describe('CreateOrderService', () => {
         assert.equal(onChainStatusOrder, NoteOnChainStatus.ACTIVE);
 
         const cancelOrderService = new ProCancelOrderService(darkSwap);
-        const { context:context3, newBalance:newBalance2 } = await cancelOrderService.prepare(wallet.address, orderNote, newBalance, signature);
+        const { context:context3, newBalance:newBalance2 } = await cancelOrderService.prepare(wallet.address, orderNote, newBalance, signature, noteCryptoContext);
         await cancelOrderService.execute(context3);
         assert.equal(newBalance2.amount, depositAmount);
         const onChainStatusNewBalance2 = await getNoteOnChainStatusBySignature(darkSwap, newBalance2, signature);

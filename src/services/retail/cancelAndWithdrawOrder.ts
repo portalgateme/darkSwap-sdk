@@ -41,7 +41,7 @@ export class RetailCancelOrderService extends BaseContractService {
   public async prepare(
     address: string,
     orderNote: DarkSwapOrderNote,
-    signature: string
+    signature: string,
   ): Promise<{ context: RetailCancelOrderContext }> {
     const context = new RetailCancelOrderContext(signature);
     context.orderNote = orderNote;
@@ -86,6 +86,7 @@ export class RetailCancelOrderService extends BaseContractService {
       context.merkleRoot,
       context.orderNote.asset,
       hexlify32(context.orderNote.amount),
+      hexlify32(context.orderNote.feeRatio),
       context.proof.nullifier,
       context.proof.proof
     );

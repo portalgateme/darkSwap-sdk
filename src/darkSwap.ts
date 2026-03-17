@@ -7,11 +7,13 @@ export class DarkSwap {
   provider: ethers.Provider;
   chainId: number;
   contracts: ContractConfiguartion;
+  disableUploadNotes: boolean;
 
   constructor(
     signer: ethers.Signer,
     chainId: number,
     contracts?: ContractConfiguartion,
+    disableUploadNotes?: boolean
   ) {
     // @ts-ignore
     this.signer = signer;
@@ -27,5 +29,6 @@ export class DarkSwap {
         throw new DarkSwapError('There is no default contract configuration for the provided chainId');
       }
     }
+    this.disableUploadNotes = disableUploadNotes ?? false;
   }
 }
