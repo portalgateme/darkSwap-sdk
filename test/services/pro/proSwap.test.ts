@@ -24,6 +24,8 @@ describe('ProSwapService', () => {
         const onChainStatus = await getNoteOnChainStatusBySignature(aliceDarkSwap, newBalanceNote, aliceSignature);
         assert.equal(onChainStatus, NoteOnChainStatus.ACTIVE);
 
+        console.log(" alice creating order");
+
         const aliceOrderAmount = 2000000000000000000n;
         const aliceSwapInAmount = 1000000000000000000n;
         const aliceCreateOrderService = new ProCreateOrderService(aliceDarkSwap);
@@ -33,6 +35,8 @@ describe('ProSwapService', () => {
         assert.equal(aliceOrderNote.amount, aliceOrderAmount);
         const onChainStatusOrder = await getNoteOnChainStatusBySignature(aliceDarkSwap, aliceOrderNote, aliceSignature);
         assert.equal(onChainStatusOrder, NoteOnChainStatus.ACTIVE);
+
+        console.log(" bob starts here");
 
         const bobWallet = getBobWallet();
         const bobSignature = await getBobSignature();

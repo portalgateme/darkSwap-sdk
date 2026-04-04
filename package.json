@@ -4,7 +4,7 @@
     "publishConfig": {
         "access": "public"
     },
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "DarkSwap SDK for browser and Node.js",
     "main": "dist/index.js",
     "typings": "dist/index.d.ts",
