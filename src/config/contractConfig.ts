@@ -31,7 +31,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0x4200000000000000000000000000000000000006',
     merkleTreeOperator: '0x918B4F76CAE5F67A3818D8eD3d0e11D9888684E9',
-    darkSwapAssetManager: '0x04dc76740Ad3ad4eDa31b76ED7D2B4fef8b06439',
+    darkSwapAssetManager: '0x43f3Af9133f61b79eD4683Deb201E5FDbA42DBE9',
     darkSwapFeeAssetManager: '0x5D130d32A962c1F86A9378d07b60b46De86e6855',
   },
   [ChainId.SEPOLIA]: {
