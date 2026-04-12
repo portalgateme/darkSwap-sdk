@@ -7,13 +7,14 @@ const PROVIDER_URL = 'http://localhost:18544';
 const HARDHAT_CA = {
     "mimc254": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
     "merkleTreeOperator": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
-    "verifierHub": "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
-    "eRC20AssetPool": "0x59b670e9fA9D0A427751Af201D676719a970857b",
-    "eRC721AssetPool": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
-    "eTHAssetPool": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
-    "darkSwapFeeAssetManager": "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f",
-    "darkSwapMcManager": "0xc5a5C42992dECbae36851359345FE25997F5C42d",
-    "darkSwapAssetManager": "0x67d269191c92Caf3cD7723F116c85e6E9bf55933",
+    "verifierHub": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
+    "eRC20AssetPool": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
+    "eRC721AssetPool": "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f",
+    "eTHAssetPool": "0x4A679253410272dd5232B3Ff7cF5dbB88f295319",
+    "darkSwapFeeAssetManager": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
+    "darkSwapMcManager": "0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E",
+    "darkSwapAssetManager": "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690",
+    "darkSwapPartialFillAssetManager": "0x851356ae760d987E095750cCeb3bC6014560891C",
 }
 
 export function getAliceWallet() {
@@ -87,7 +88,8 @@ export function getDarkSwapForAlice(disableUploadNotes: boolean = false) {
             nativeWrapper: '0x0000000000000000000000000000000000000000',
             merkleTreeOperator: HARDHAT_CA.merkleTreeOperator,
             darkSwapAssetManager: HARDHAT_CA.darkSwapAssetManager,
-            darkSwapFeeAssetManager: HARDHAT_CA.darkSwapFeeAssetManager
+            darkSwapFeeAssetManager: HARDHAT_CA.darkSwapFeeAssetManager,
+            darkSwapPartialFillAssetManager: HARDHAT_CA.darkSwapPartialFillAssetManager
         },
         disableUploadNotes
     );
@@ -104,7 +106,8 @@ export function getDarkSwapForBob() {
             nativeWrapper: '0x0000000000000000000000000000000000000000',
             merkleTreeOperator: HARDHAT_CA.merkleTreeOperator,
             darkSwapAssetManager: HARDHAT_CA.darkSwapAssetManager,
-            darkSwapFeeAssetManager: HARDHAT_CA.darkSwapFeeAssetManager
+            darkSwapFeeAssetManager: HARDHAT_CA.darkSwapFeeAssetManager,
+            darkSwapPartialFillAssetManager: HARDHAT_CA.darkSwapPartialFillAssetManager
         }
     );
 }

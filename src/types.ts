@@ -19,7 +19,9 @@ export enum PROOF_DOMAIN {
     RETAIL_SWAP = 10010,
     PAIR_JOIN = 10011,
     RETAIL_CREATE_MAKER_ORDER = 10012,
-    MC_MARKET_SWAP = 10100
+    RETAIL_DEPOSIT_CREATE_PARTIAL_ORDER = 10013,
+    MC_MARKET_SWAP = 10100,
+    MC_PRO_PARTIAL_ORDER_SWAP = 10101
 }
 
 export const EMPTY_NULLIFIER = 0n;
@@ -95,6 +97,33 @@ export type DarkSwapMessage = BaseSwapMessage & {
 export type DarkSwapBobMarketMessage = BaseSwapMessage & {
     inPartialNote: DarkSwapPartialNote,
     minInAmount: bigint,
+}
+
+export type DarkSwapBobPartialOrderMessage = BaseSwapMessage & {
+    inAsset: string,
+    minOutAmount: bigint,
+    inAssetDecimal: bigint,
+    outAssetDecimal: bigint,
+    outInSwapPrice: bigint,
+    inPartialNote: DarkSwapPartialNote,
+}
+
+export type DarkSwapPartialOrderMessage = {
+    bobOrderNote: DarkSwapOrderNote,
+    bobOrderNullifier: string,
+    bobInAsset: string,
+    bobMinOutAmount: bigint,
+    bobInAssetDecimal: bigint,
+    bobOutAssetDecimal: bigint,
+    bobOutInSwapPrice: bigint,
+    bobInPartialNote: DarkSwapPartialNote,
+    bobInAmount: bigint,
+    bobFeeAmount: bigint,
+    bobPublicKey: [Fr, Fr],
+    bobSignature: string,
+    mcWalletAddress: string,
+    mcPublicKey: [Fr, Fr],
+    mcSignature: string,
 }
 
 export type DarkSwapMarketMessage = {
