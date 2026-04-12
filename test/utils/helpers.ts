@@ -5,15 +5,15 @@ import IERC20ABI from "../../src/abis/IERC20.json";
 const PROVIDER_URL = 'http://localhost:18544';
 
 const HARDHAT_CA = {
-    "mimc254": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-    "merkleTreeOperator": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-    "verifierHub": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
-    "eRC20AssetPool": "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
-    "eRC721AssetPool": "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
-    "eTHAssetPool": "0x59b670e9fA9D0A427751Af201D676719a970857b",
-    "darkSwapFeeAssetManager": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
-    "darkSwapMcManager": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
-    "darkSwapAssetManager": "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
+    "mimc254": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+    "merkleTreeOperator": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+    "verifierHub": "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
+    "eRC20AssetPool": "0x59b670e9fA9D0A427751Af201D676719a970857b",
+    "eRC721AssetPool": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
+    "eTHAssetPool": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
+    "darkSwapFeeAssetManager": "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f",
+    "darkSwapMcManager": "0xc5a5C42992dECbae36851359345FE25997F5C42d",
+    "darkSwapAssetManager": "0x67d269191c92Caf3cD7723F116c85e6E9bf55933",
 }
 
 export function getAliceWallet() {
@@ -40,7 +40,7 @@ export async function getBobSignature() {
 
 export async function getMcSignature() {
     const wallet = getAliceWallet();
-    const message = 'Hello, matching engine!';
+    const message = 'hey ders!';
     return await wallet.signMessage(message);
 }
 

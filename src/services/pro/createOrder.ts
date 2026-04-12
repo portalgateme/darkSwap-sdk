@@ -3,7 +3,7 @@ import DarkSwapAssetManagerAbi from '../../abis/DarkSwapAssetManager.json';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
-import { calcNullifier, createNote, createOrderNoteExt } from '../../proof/noteService';
+import { calcNullifier, createNote, createOrderNoteExt, EMPTY_NOTE } from '../../proof/noteService';
 import { generateProCreateOrderProof, ProCreateOrderProofResult } from '../../proof/pro/orders/createOrderProof';
 import { BLANK_BYTES, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, DarkSwapOrderNoteExt, NoteCryptoContext } from '../../types';
 import { hexlify32 } from '../../utils/util';
@@ -116,7 +116,10 @@ export class ProCreateOrderService extends BaseContractService {
     const feeRatio = BigInt(await getFeeRatio(address, this._darkSwap));
     const orderNote = createOrderNoteExt(address, orderAsset, orderAmount, feeRatio, pubKey);
     const orderNullifier = hexlify32(calcNullifier(orderNote.rho, pubKey));
-    const newBalance = createNote(address, orderAsset, balanceNote.amount - orderAmount, pubKey);
+    let newBalance = EMPTY_NOTE;
+    if (balanceNote.amount - orderAmount > 0n) {
+      newBalance = createNote(address, orderAsset, balanceNote.amount - orderAmount, pubKey);
+    }
     const context = new ProCreateOrderContext(signature, noteCryptoContext);
     context.orderNote = orderNote;
     context.swapInAsset = swapInAsset;

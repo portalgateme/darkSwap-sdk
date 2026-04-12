@@ -4,7 +4,7 @@ import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateWithdrawProof, WithdrawProofResult } from '../../proof/basic/withdrawProof';
 import { generateKeyPair } from '../../proof/keyService';
-import { createNote } from '../../proof/noteService';
+import { createNote, EMPTY_NOTE } from '../../proof/noteService';
 import { BLANK_BYTES, DarkSwapNote } from '../../types';
 import { BaseContext, BaseContractService } from '../BaseService';
 import { getMerklePathAndRoot } from '../merkletree';
@@ -65,7 +65,10 @@ export class WithdrawService extends BaseContractService {
     signature: string
   ): Promise<{ context: WithdrawContext; newBalanceNote: DarkSwapNote }> {
     const [pubKey] = await generateKeyPair(signature);
-    const newBalanceNote = createNote(address, currentBalance.asset, currentBalance.amount - withdrawAmount, pubKey);
+    let newBalanceNote = EMPTY_NOTE;
+    if (currentBalance.amount - withdrawAmount > 0n) {
+      newBalanceNote = createNote(address, currentBalance.asset, currentBalance.amount - withdrawAmount, pubKey);
+    }
 
     const context = new WithdrawContext(signature);
     context.currentBalance = currentBalance;

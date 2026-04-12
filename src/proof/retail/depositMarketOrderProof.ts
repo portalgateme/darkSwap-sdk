@@ -50,6 +50,7 @@ export async function generateRetailMarketSwapMessageForMc(
     const message = bn_to_hex(mimc_bn254([
         BigInt(PROOF_DOMAIN.MC_MARKET_SWAP),
         bobInNote.amount + bobFeeAmount,
+        BigInt(bobMessage.orderNullifier)
     ]));
     const signature = await signMessage(message, privKey);
 

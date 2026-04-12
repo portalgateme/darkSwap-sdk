@@ -2,7 +2,7 @@ import { assert, describe, it } from 'vitest';
 import { DepositService, NoteOnChainStatus, WithdrawService } from '../../src';
 import { EMPTY_NOTE } from '../../src/proof/noteService';
 import { getNoteOnChainStatusBySignature } from '../../src/services/noteService';
-import { getAliceSignature, getAliceWallet, getAliceWalletBalance, getDarkSwapForAlice } from "../utils/helpers";
+import { getAliceNoteCryptoContext, getAliceSignature, getAliceWallet, getAliceWalletBalance, getDarkSwapForAlice } from "../utils/helpers";
 
 describe('WithdrawService', () => {
     it('should withdraw', async () => {
@@ -14,11 +14,12 @@ describe('WithdrawService', () => {
         console.log('ethT0', ethT0);
 
         const darkSwap = getDarkSwapForAlice();
+        const noteCryptoContext = await getAliceNoteCryptoContext();
 
         const balanceNote1 = EMPTY_NOTE;
         const depositAmount = 1000000000000000000n;
         const depositService = new DepositService(darkSwap);
-        const { context, newBalanceNote } = await depositService.prepare(balanceNote1, asset, depositAmount, wallet.address, signature);
+        const { context, newBalanceNote } = await depositService.prepare(balanceNote1, asset, depositAmount, wallet.address, signature, noteCryptoContext);
         await depositService.execute(context);
         assert.equal(newBalanceNote.amount, depositAmount);
 
