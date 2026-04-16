@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "DarkSwapPartialFillAssetManager",
-  "sourceName": "contracts/core/DarkSwapPartialFillAssetManager.sol",
+  "contractName": "DarkSwapPartialAssetManager",
+  "sourceName": "contracts/core/DarkSwapPartialAssetManager.sol",
   "abi": [
     {
       "inputs": [
@@ -163,6 +163,134 @@
         {
           "indexed": false,
           "internalType": "bytes32",
+          "name": "bobLeftOverOrderNullifier",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "bobLeftOverInNote",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "bobLeftOverInNoteFooter",
+          "type": "bytes32"
+        }
+      ],
+      "name": "DarkSwapProMarketPartialLeftOverSwap",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceOutNullifier",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceInNote",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceInNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceChangeNote",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceChangeNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "bobOutNullifier",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "bobInNote",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "bobInNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "bobLeftOverOrderNote",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "bobLeftOverOrderNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "bobLeftOverInNoteFooter",
+          "type": "bytes32"
+        }
+      ],
+      "name": "DarkSwapProMarketPartialSwap",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceOutNullifier",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceInNote",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceInNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceChangeNote",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "aliceChangeNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
           "name": "bobOutNullifier",
           "type": "bytes32"
         },
@@ -191,7 +319,62 @@
           "type": "bytes32"
         }
       ],
-      "name": "DarkSwapProPartialFillSwap",
+      "name": "DarkSwapProPartialSwap",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "asset",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "depositOutNote",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "depositOutNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "inNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "leftOverOrderNoteFooter",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "leftOverInNoteFooter",
+          "type": "bytes32"
+        }
+      ],
+      "name": "DarkSwapRetailDepositCreateMarketPartialOrder",
       "type": "event"
     },
     {
@@ -240,7 +423,7 @@
           "type": "bytes32"
         }
       ],
-      "name": "DarkSwapRetailDepositCreatePartialFillOrder",
+      "name": "DarkSwapRetailDepositCreatePartialOrder",
       "type": "event"
     },
     {
@@ -456,6 +639,221 @@
             },
             {
               "internalType": "bytes32",
+              "name": "bobLeftOverOrderNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobLeftOverOrderNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobLeftOverInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobLeftOverInNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "mc",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes32[2]",
+              "name": "mcPubKeys",
+              "type": "bytes32[2]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "aliceEncryptedNotes",
+              "type": "bytes[]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "bobEncryptedNodtes",
+              "type": "bytes[]"
+            }
+          ],
+          "internalType": "struct DarkSwapPartialAssetManager.ProMarketPartialLeftOverOrderSwapArgs",
+          "name": "_args",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "proMarketPartialLeftOverOrderSwap",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "merkleRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "aliceFeeRatio",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceChangeNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceChangeNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "bobFeeRatio",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobInNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobLeftOverOrderNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobLeftOverOrderNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobLeftOverInNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "mc",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes32[2]",
+              "name": "mcPubKeys",
+              "type": "bytes32[2]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "aliceEncryptedNotes",
+              "type": "bytes[]"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "bobEncryptedNodtes",
+              "type": "bytes[]"
+            }
+          ],
+          "internalType": "struct DarkSwapPartialAssetManager.ProMarketPartialOrderSwapArgs",
+          "name": "_args",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "proMarketPartialOrderSwap",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "merkleRoot",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "aliceFeeRatio",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceInNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceChangeNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "aliceChangeNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "bobOutNullifier",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "bobFeeRatio",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
               "name": "bobInNote",
               "type": "bytes32"
             },
@@ -495,7 +893,7 @@
               "type": "bytes[]"
             }
           ],
-          "internalType": "struct DarkSwapPartialFillAssetManager.ProPartialFillOrderSwapArgs",
+          "internalType": "struct DarkSwapPartialAssetManager.ProPartialOrderSwapArgs",
           "name": "_args",
           "type": "tuple"
         },
@@ -505,7 +903,7 @@
           "type": "bytes"
         }
       ],
-      "name": "proPartialFillOrderSwap",
+      "name": "proPartialOrderSwap",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -566,7 +964,12 @@
             },
             {
               "internalType": "bytes32",
-              "name": "changeNoteFooter",
+              "name": "leftOverOrderNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "leftOverInNoteFooter",
               "type": "bytes32"
             },
             {
@@ -575,7 +978,7 @@
               "type": "bytes[]"
             }
           ],
-          "internalType": "struct DarkSwapPartialFillAssetManager.RetailDepositCreatePartialFillOrderArgs",
+          "internalType": "struct DarkSwapPartialAssetManager.RetailDepositCreateMarketPartialOrderArgs",
           "name": "_args",
           "type": "tuple"
         },
@@ -585,7 +988,62 @@
           "type": "bytes"
         }
       ],
-      "name": "retailDepositCreatePartialFillOrder",
+      "name": "retailDepositCreateMarketPartialOrder",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "depositOutNote",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "depositOutNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "outAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "outAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "inNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "changeNoteFooter",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes[]",
+              "name": "encryptdNotes",
+              "type": "bytes[]"
+            }
+          ],
+          "internalType": "struct DarkSwapPartialAssetManager.RetailDepositCreatePartialOrderArgs",
+          "name": "_args",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_proof",
+          "type": "bytes"
+        }
+      ],
+      "name": "retailDepositCreatePartialOrder",
       "outputs": [],
       "stateMutability": "payable",
       "type": "function"

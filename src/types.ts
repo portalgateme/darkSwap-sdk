@@ -20,8 +20,10 @@ export enum PROOF_DOMAIN {
     PAIR_JOIN = 10011,
     RETAIL_CREATE_MAKER_ORDER = 10012,
     RETAIL_DEPOSIT_CREATE_PARTIAL_ORDER = 10013,
+    RETAIL_DEPOSIT_CREATE_MARKET_PARTIAL_ORDER = 10014,
     MC_MARKET_SWAP = 10100,
-    MC_PRO_PARTIAL_ORDER_SWAP = 10101
+    MC_PRO_PARTIAL_ORDER_SWAP = 10101,
+    MC_PRO_MARKET_PARTIAL_ORDER_SWAP = 10102
 }
 
 export const EMPTY_NULLIFIER = 0n;
@@ -108,6 +110,23 @@ export type DarkSwapBobPartialOrderMessage = BaseSwapMessage & {
     inPartialNote: DarkSwapPartialNote,
 }
 
+
+export type DarkSwapBobMarketPartialOrderMessage = {
+    address: string,
+    orderNote: DarkSwapOrderNote,
+    inAsset: string,
+    minOutAmount: bigint,
+    inAssetDecimal: bigint,
+    outAssetDecimal: bigint,
+    minOutInSwapPrice: bigint,
+    inPartialNote: DarkSwapPartialNote,
+    leftOverOrderNote: DarkSwapPartialNote,
+    leftOverInNote: DarkSwapPartialNote,
+    publicKey: [Fr, Fr],
+    signature: string,
+    version?: number,
+}
+
 export type DarkSwapPartialOrderMessage = {
     bobOrderNote: DarkSwapOrderNote,
     bobOrderNullifier: string,
@@ -124,6 +143,31 @@ export type DarkSwapPartialOrderMessage = {
     mcWalletAddress: string,
     mcPublicKey: [Fr, Fr],
     mcSignature: string,
+}
+
+export type DarkSwapMarketPartialOrderMessage = {
+    bobOrderNote: DarkSwapOrderNote,
+    bobInAsset: string,
+    bobMinOutAmount: bigint,
+    bobInAssetDecimal: bigint,
+    bobOutAssetDecimal: bigint,
+    bobMinOutInSwapPrice: bigint,
+
+    bobInPartialNote: DarkSwapPartialNote,
+    bobLeftOverOrderNote: DarkSwapPartialNote,
+    bobLeftOverInNote: DarkSwapPartialNote,
+
+    bobRealOutAmount: bigint,
+    bobInAmount: bigint,
+    bobFeeAmount: bigint,
+
+    bobPublicKey: [Fr, Fr],
+    bobSignature: string,
+
+    mcWalletAddress: string,
+    mcPublicKey: [Fr, Fr],
+    mcSignature: string,
+    mcBobOutInSwapPrice: bigint,
 }
 
 export type DarkSwapMarketMessage = {

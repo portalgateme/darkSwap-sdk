@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import DarkSwapPartialFillAssetManagerAbi from '../../abis/DarkSwapPartialFillAssetManager.json';
+import DarkSwapPartialAssetManagerAbi from '../../abis/DarkSwapPartialAssetManager.json';
 import ERC20Abi from '../../abis/IERC20.json';
 import ERC20_USDT from '../../abis/IERC20_USDT.json';
 import { getConfirmations, legacyTokenConfig } from '../../config';
@@ -203,14 +203,14 @@ export class RetailDepositCreatePartialOrderService extends BaseContractService 
     const allowanceContract = new ethers.Contract(asset, ERC20Abi.abi, this._darkSwap);
     const allowance = await allowanceContract.allowance(
       signer.getAddress(),
-      this._darkSwap.contracts.darkSwapPartialFillAssetManager
+      this._darkSwap.contracts.darkSwapPartialAssetManager
     );
     if (BigInt(allowance) < amount) {
       const isLegacy =
         legacyTokenConfig.hasOwnProperty(this._darkSwap.chainId) &&
         legacyTokenConfig[this._darkSwap.chainId].includes(asset.toLowerCase());
       const contract = new ethers.Contract(asset, isLegacy ? ERC20_USDT.abi : ERC20Abi.abi, signer);
-      const tx = await contract.approve(this._darkSwap.contracts.darkSwapPartialFillAssetManager, hexlify32(MAX_ALLOWANCE));
+      const tx = await contract.approve(this._darkSwap.contracts.darkSwapPartialAssetManager, hexlify32(MAX_ALLOWANCE));
       await tx.wait(getConfirmations(this._darkSwap.chainId));
     }
   }
@@ -226,8 +226,8 @@ export class RetailDepositCreatePartialOrderService extends BaseContractService 
     const encryptedChangeNote = encryptPartialNote(context.changeNote, context.noteCryptoContext);
 
     const contract = new ethers.Contract(
-      this._darkSwap.contracts.darkSwapPartialFillAssetManager,
-      DarkSwapPartialFillAssetManagerAbi.abi,
+      this._darkSwap.contracts.darkSwapPartialAssetManager,
+      DarkSwapPartialAssetManagerAbi.abi,
       this._darkSwap.signer
     );
     let ethAmount = 0n;
@@ -237,7 +237,7 @@ export class RetailDepositCreatePartialOrderService extends BaseContractService 
       await this.allowance(context);
     }
 
-    const tx = await contract.retailDepositCreatePartialFillOrder(
+    const tx = await contract.retailDepositCreatePartialOrder(
       [
         hexlify32(context.orderNote.note),
         context.proof.depositOutNoteFooter,

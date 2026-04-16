@@ -3,7 +3,7 @@ import { createNoteCryptoContext, decryptNote, DepositService, deriveKey, NoteOn
 import { EMPTY_NOTE, rebuildNote } from '../../../src/proof/noteService';
 import { getNoteOnChainStatusByPublicKey, getNoteOnChainStatusBySignature } from '../../../src/services/noteService';
 import { getAliceNoteCryptoContext, getAliceSignature, getAliceWallet, getBobSignature, getBobWallet, getDarkSwapForAlice, getDarkSwapForBob, getMcAddress, getMcSignature } from "../../utils/helpers";
-import DarkSwapPartialFillAssetManagerAbi from '../../../src/abis/DarkSwapPartialFillAssetManager.json';
+import DarkSwapPartialAssetManagerAbi from '../../../src/abis/DarkSwapPartialAssetManager.json';
 import { ethers } from 'ethers';
 
 describe('ProPartialOrderSwapService', () => {
@@ -112,7 +112,7 @@ describe('ProPartialOrderSwapService', () => {
     const onChainStatusBobIn = await getNoteOnChainStatusByPublicKey(bobDarkSwap, bobInNote, swapMessage.bobPublicKey);
     assert.equal(onChainStatusBobIn, NoteOnChainStatus.ACTIVE);
 
-    const iface = new ethers.Interface(DarkSwapPartialFillAssetManagerAbi.abi);
+    const iface = new ethers.Interface(DarkSwapPartialAssetManagerAbi.abi);
     const tx = await aliceDarkSwap.provider.getTransaction(txHash);
     if (!tx) {
       throw new Error('Transaction not found');

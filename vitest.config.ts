@@ -5,6 +5,8 @@ export default defineConfig({
     include: ['test/**/*.test.ts', 'test/**/*.spec.ts'],
     environment: 'node',
     globals: true,
+    maxWorkers: 1,
+    minWorkers: 1,
   },
   resolve: {
     alias: {

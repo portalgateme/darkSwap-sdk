@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import DarkSwapPartialFillAssetManagerAbi from '../../abis/DarkSwapPartialFillAssetManager.json';
+import DarkSwapPartialAssetManagerAbi from '../../abis/DarkSwapPartialAssetManager.json';
 import { DarkSwap } from '../../darkSwap';
 import { DarkSwapError } from '../../entities';
 import { generateKeyPair } from '../../proof/keyService';
@@ -196,8 +196,8 @@ export class ProPartialOrderSwapService extends BaseContractService {
     const bobInNote = rebuildNote(context.bobSwapMessage.bobInPartialNote, bobInNoteAmount, context.bobSwapMessage.bobPublicKey);
 
     const contract = new ethers.Contract(
-      this._darkSwap.contracts.darkSwapPartialFillAssetManager,
-      DarkSwapPartialFillAssetManagerAbi.abi,
+      this._darkSwap.contracts.darkSwapPartialAssetManager,
+      DarkSwapPartialAssetManagerAbi.abi,
       this._darkSwap.signer
     );
 
@@ -221,8 +221,8 @@ export class ProPartialOrderSwapService extends BaseContractService {
       [],
     ];
 
-    const estimatedGas = await contract.proPartialFillOrderSwap.estimateGas(swapArgs, context.proof.proof);
-    const tx = await contract.proPartialFillOrderSwap(swapArgs, context.proof.proof, { gasLimit: estimatedGas });
+    const estimatedGas = await contract.proPartialOrderSwap.estimateGas(swapArgs, context.proof.proof);
+    const tx = await contract.proPartialOrderSwap(swapArgs, context.proof.proof, { gasLimit: estimatedGas });
     await tx.wait();
     return tx.hash;
   }

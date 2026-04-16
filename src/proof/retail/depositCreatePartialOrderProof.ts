@@ -142,7 +142,7 @@ export async function generateRetailPartialOrderMessage(
         mimc_bn254([
             BigInt(PROOF_DOMAIN.RETAIL_DEPOSIT_CREATE_PARTIAL_ORDER),
             addressMod,
-            orderNullifier,
+            orderNote.note,
             orderNote.feeRatio,
             encodeAddress(inAsset),
             minOutAmount,
@@ -182,8 +182,9 @@ export async function generateRetailPartialOrderMessageForMc(
     const message = bn_to_hex(
         mimc_bn254([
             BigInt(PROOF_DOMAIN.MC_PRO_PARTIAL_ORDER_SWAP),
+            bobMessage.orderNote.amount,
             bobInAmount,
-            BigInt(bobMessage.orderNullifier),
+            BigInt(bobMessage.orderNullifier), // bob_out_nullifier
         ])
     );
     const signature = await signMessage(message, privKey);
