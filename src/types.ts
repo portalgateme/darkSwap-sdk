@@ -170,6 +170,40 @@ export type DarkSwapMarketPartialOrderMessage = {
     mcBobOutInSwapPrice: bigint,
 }
 
+
+export type DarkSwapMarketPartialLeftOverOrderMessage = {
+    bobOutNote: DarkSwapOrderNote,
+    bobOutNullifier: string,
+
+    bobLeftOverOrderNote: DarkSwapPartialNote,
+    bobLeftOverOrderNoteFooter: bigint,
+    bobLeftOverOrderNullifier: string,
+
+    bobLeftOverInNote: DarkSwapPartialNote,
+    bobLeftOverInNoteFooter: bigint,
+
+    bobPartialInNote: DarkSwapPartialNote,
+    bobPartialInNoteFooter: bigint,
+
+    bobInAsset: string,
+    bobMinOutAmount: bigint,
+    bobInAssetDecimal: bigint,
+    bobOutAssetDecimal: bigint,
+    bobMinOutInSwapPrice: bigint,
+
+    bobPartialOutAmount: bigint,
+    bobLeftOverInAmount: bigint,
+    bobFeeAmount: bigint,
+
+    bobPublicKey: [Fr, Fr],
+    bobSignature: string,
+
+    mcWalletAddress: string,
+    mcPublicKey: [Fr, Fr],
+    mcSignature: string,
+    mcBobOutInSwapPrice: bigint,
+}
+
 export type DarkSwapMarketMessage = {
     bobOrderNote: DarkSwapOrderNote,
     bobOrderNullifier: string,
