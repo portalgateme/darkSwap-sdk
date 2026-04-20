@@ -60,7 +60,7 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     priceOracle: '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-    merkleTreeOperator: '0xEd8D7d3A98CB4ea6C91a80dcd2220719c264531f',
+    merkleTreeOperator: '0x0165878A594ca255338adfa4d48449f69242Eb8F',
     darkSwapAssetManager: '0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9',
     darkSwapFeeAssetManager: '0x67d269191c92Caf3cD7723F116c85e6E9bf55933',
     darkSwapPartialAssetManager: '0x998abeb3E57409262aE5b751f60747921B33613E'
