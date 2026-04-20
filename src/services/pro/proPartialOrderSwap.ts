@@ -92,6 +92,7 @@ export class ProPartialOrderSwapService extends BaseContractService {
   public static async prepareProPartialOrderMessageForMc(
     bobMessage: DarkSwapBobPartialOrderMessage,
     bobInAmount: bigint,
+    bobRealOutAmount: bigint,
     mcAddress: string,
     mcSignature: string
   ): Promise<DarkSwapPartialOrderMessage> {
@@ -101,6 +102,7 @@ export class ProPartialOrderSwapService extends BaseContractService {
       mcAddress,
       bobMessage,
       bobInAmount,
+      bobRealOutAmount,
       bobFeeAmount,
       pubKey,
       privKey
@@ -121,8 +123,10 @@ export class ProPartialOrderSwapService extends BaseContractService {
     }
 
     const [pubKey] = await generateKeyPair(signature);
-    const aliceFeeAmount = calcFeeAmount(bobSwapMessage.bobOrderNote.amount, orderNote.feeRatio);
-    const swapInNote = createNote(address, bobSwapMessage.bobOrderNote.asset, bobSwapMessage.bobOrderNote.amount - aliceFeeAmount, pubKey);
+    // Alice only receives what bob actually spends (bobRealOutAmount), not
+    // bob's full deposit — the remainder becomes bob's on-chain change note.
+    const aliceFeeAmount = calcFeeAmount(bobSwapMessage.bobRealOutAmount, orderNote.feeRatio);
+    const swapInNote = createNote(address, bobSwapMessage.bobOrderNote.asset, bobSwapMessage.bobRealOutAmount - aliceFeeAmount, pubKey);
 
     const changeAmount = orderNote.amount - bobSwapMessage.bobInAmount;
     const changeNote = changeAmount === 0n ? EMPTY_NOTE : createNote(address, orderNote.asset, changeAmount, pubKey);
@@ -195,6 +199,14 @@ export class ProPartialOrderSwapService extends BaseContractService {
     const bobInNoteAmount = context.bobSwapMessage.bobInAmount - context.bobSwapMessage.bobFeeAmount;
     const bobInNote = rebuildNote(context.bobSwapMessage.bobInPartialNote, bobInNoteAmount, context.bobSwapMessage.bobPublicKey);
 
+    // Bob's change note commits the portion of bob's deposit refunded when
+    // the match is a partial fill. rebuildNote reuses the pre-committed rho
+    // that bob signed into the deposit proof.
+    const bobChangeAmount = context.bobSwapMessage.bobOrderNote.amount - context.bobSwapMessage.bobRealOutAmount;
+    const bobChangeNoteCommitment = bobChangeAmount === 0n
+      ? EMPTY_NOTE.note
+      : rebuildNote(context.bobSwapMessage.bobChangeNote, bobChangeAmount, context.bobSwapMessage.bobPublicKey).note;
+
     const contract = new ethers.Contract(
       this._darkSwap.contracts.darkSwapPartialAssetManager,
       DarkSwapPartialAssetManagerAbi.abi,
@@ -213,7 +225,7 @@ export class ProPartialOrderSwapService extends BaseContractService {
       hexlify32(context.bobSwapMessage.bobOrderNote.feeRatio),
       hexlify32(bobInNote.note),
       context.proof.bobInNoteFooter,
-      hexlify32(EMPTY_NOTE.note),
+      hexlify32(bobChangeNoteCommitment),
       context.proof.bobChangeNoteFooter,
       context.bobSwapMessage.mcWalletAddress,
       [context.bobSwapMessage.mcPublicKey[0].toString(), context.bobSwapMessage.mcPublicKey[1].toString()],

@@ -1,5 +1,5 @@
 import retailDepositCreatePartialOrderCircuit from "../../circuits/retail/dark_swap_retail_deposit_create_partial_order_compiled_circuit.json";
-import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapBobPartialOrderMessage, DarkSwapOrderNote, DarkSwapPartialNote, DarkSwapPartialOrderMessage, DarkSwapProofError, EMPTY_FOOTER, PROOF_DOMAIN } from "../../types";
+import { BaseProofInput, BaseProofParam, BaseProofResult, DarkSwapBobPartialOrderMessage, DarkSwapOrderNote, DarkSwapPartialNote, DarkSwapPartialOrderMessage, DarkSwapProofError, PROOF_DOMAIN } from "../../types";
 import { encodeAddress } from "../../utils/encoders";
 import { bn_to_0xhex, bn_to_hex } from "../../utils/formatters";
 import { mimc_bn254 } from "../../utils/mimc";
@@ -130,6 +130,7 @@ export async function generateRetailPartialOrderMessage(
     outAssetDecimal: bigint,
     outInSwapPrice: bigint,
     inPartialNote: DarkSwapPartialNote,
+    changeNote: DarkSwapPartialNote,
     pubKey: any,
     privKey: any,
     version: number
@@ -137,6 +138,7 @@ export async function generateRetailPartialOrderMessage(
     const addressMod = encodeAddress(address);
     const orderNullifier = calcNullifier(orderNote.rho, pubKey);
     const inNoteFooter = getNoteFooter(inPartialNote.rho, pubKey);
+    const changeNoteFooter = getNoteFooter(changeNote.rho, pubKey);
 
     const message = bn_to_hex(
         mimc_bn254([
@@ -147,7 +149,7 @@ export async function generateRetailPartialOrderMessage(
             encodeAddress(inAsset),
             minOutAmount,
             inNoteFooter,
-            EMPTY_FOOTER,
+            changeNoteFooter,
             inAssetDecimal,
             outAssetDecimal,
             outInSwapPrice,
@@ -165,6 +167,7 @@ export async function generateRetailPartialOrderMessage(
         outAssetDecimal,
         outInSwapPrice,
         inPartialNote,
+        changeNote,
         publicKey: pubKey,
         signature: signatureToHexString(signature),
         version,
@@ -175,6 +178,7 @@ export async function generateRetailPartialOrderMessageForMc(
     mcAddress: string,
     bobMessage: DarkSwapBobPartialOrderMessage,
     bobInAmount: bigint,
+    bobRealOutAmount: bigint,
     bobFeeAmount: bigint,
     pubKey: any,
     privKey: any
@@ -182,7 +186,7 @@ export async function generateRetailPartialOrderMessageForMc(
     const message = bn_to_hex(
         mimc_bn254([
             BigInt(PROOF_DOMAIN.MC_PRO_PARTIAL_ORDER_SWAP),
-            bobMessage.orderNote.amount,
+            bobRealOutAmount,
             bobInAmount,
             BigInt(bobMessage.orderNullifier), // bob_out_nullifier
         ])
@@ -198,7 +202,9 @@ export async function generateRetailPartialOrderMessageForMc(
         bobOutAssetDecimal: bobMessage.outAssetDecimal,
         bobOutInSwapPrice: bobMessage.outInSwapPrice,
         bobInPartialNote: bobMessage.inPartialNote,
+        bobChangeNote: bobMessage.changeNote,
         bobInAmount,
+        bobRealOutAmount,
         bobFeeAmount,
         bobPublicKey: bobMessage.publicKey,
         bobSignature: bobMessage.signature,

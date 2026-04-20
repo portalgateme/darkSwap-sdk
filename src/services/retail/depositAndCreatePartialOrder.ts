@@ -127,7 +127,11 @@ export class RetailDepositCreatePartialOrderService extends BaseContractService 
     const feeRatio = BigInt(await getFeeRatio(address, this._darkSwap));
     const orderNote = createOrderNoteExt(address, outAsset, outAmount, feeRatio, pubKey);
     const partialInNote = createPartialNote(address, inAsset);
-    const changeNote = createPartialNote(address, inAsset);
+    // Change note refunds the unfilled portion of bob's deposit, so it must
+    // carry the deposit asset. The on-chain pro partial-swap circuit
+    // reconstructs `bob_change_note` using `bob_out_asset` and this note's
+    // pre-committed rho.
+    const changeNote = createPartialNote(address, outAsset);
 
     const context = new RetailDepositCreatePartialOrderContext(signature, cryptoContext);
     context.address = address;
@@ -149,6 +153,7 @@ export class RetailDepositCreatePartialOrderService extends BaseContractService 
       outAssetDecimal,
       outInSwapPrice,
       partialInNote,
+      changeNote,
       pubKey,
       privKey,
       version

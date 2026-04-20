@@ -113,11 +113,14 @@ export async function generateProPartialOrderSwapProof(param: ProPartialOrderSwa
     if (param.aliceChangeNote.amount < 0n) {
         throw new DarkSwapProofError("aliceChangeNote.amount must be >= 0");
     }
+    if (param.bobMessage.bobRealOutAmount <= 0n || param.bobMessage.bobRealOutAmount > param.bobMessage.bobOrderNote.amount) {
+        throw new DarkSwapProofError("Invalid bobRealOutAmount");
+    }
 
     if (param.aliceOutNote.amount !== param.bobMessage.bobInAmount + param.aliceChangeNote.amount) {
         throw new DarkSwapProofError("Invalid alice order amount");
     }
-    if (param.bobMessage.bobOrderNote.amount !== param.aliceInNote.amount + param.aliceFeeAmount) {
+    if (param.bobMessage.bobRealOutAmount !== param.aliceInNote.amount + param.aliceFeeAmount) {
         throw new DarkSwapProofError("Invalid bob order amount");
     }
 
@@ -136,7 +139,17 @@ export async function generateProPartialOrderSwapProof(param: ProPartialOrderSwa
     const aliceChangeNoteFooter = param.aliceChangeNote.amount === 0n ? EMPTY_FOOTER : getNoteFooter(param.aliceChangeNote.rho, alicePubKey);
 
     const bobInNoteFooter = bobInNote.footer;
-    const bobChangeNote: any = { ...EMPTY_NOTE, footer: EMPTY_FOOTER };
+    // Bob's change note refunds the unfilled portion of bob's deposit. Retail
+    // pre-committed a rho at deposit time and shared it through
+    // bobMessage.bobChangeNote; we rebuild the commitment here with the
+    // deposit asset and the realised change amount.
+    const bobChangeAmount = param.bobMessage.bobOrderNote.amount - param.bobMessage.bobRealOutAmount;
+    const bobChangeNote: any = bobChangeAmount === 0n
+        ? { ...EMPTY_NOTE, footer: EMPTY_FOOTER }
+        : (() => {
+            const rebuilt = rebuildNote(param.bobMessage.bobChangeNote, bobChangeAmount, bobPubKey);
+            return { note: rebuilt.note, rho: rebuilt.rho, footer: rebuilt.footer };
+        })();
 
     const aliceMessage = bn_to_hex(
         mimc_bn254([
@@ -185,7 +198,7 @@ export async function generateProPartialOrderSwapProof(param: ProPartialOrderSwa
         bob_in_asset: bn_to_0xhex(encodeAddress(param.bobMessage.bobInAsset)),
         bob_in_amount: bn_to_0xhex(param.bobMessage.bobInAmount),
 
-        bob_real_out_amount: bn_to_0xhex(param.bobMessage.bobOrderNote.amount),
+        bob_real_out_amount: bn_to_0xhex(param.bobMessage.bobRealOutAmount),
         bob_min_out_amout: bn_to_0xhex(param.bobMessage.bobMinOutAmount),
         bob_in_asset_decimal: bn_to_0xhex(param.bobMessage.bobInAssetDecimal),
         bob_out_asset_decimal: bn_to_0xhex(param.bobMessage.bobOutAssetDecimal),

@@ -108,6 +108,11 @@ export type DarkSwapBobPartialOrderMessage = BaseSwapMessage & {
     outAssetDecimal: bigint,
     outInSwapPrice: bigint,
     inPartialNote: DarkSwapPartialNote,
+    // Pre-committed rho/asset for the (possibly empty) change refund of bob's
+    // deposit when the match is a partial fill. The on-chain deposit circuit
+    // signs the footer derived from `changeNote.rho`; the pro partial-swap
+    // circuit consumes the same rho to commit the change note.
+    changeNote: DarkSwapPartialNote,
 }
 
 
@@ -136,7 +141,13 @@ export type DarkSwapPartialOrderMessage = {
     bobOutAssetDecimal: bigint,
     bobOutInSwapPrice: bigint,
     bobInPartialNote: DarkSwapPartialNote,
+    bobChangeNote: DarkSwapPartialNote,
     bobInAmount: bigint,
+    // Portion of bob's deposit actually consumed by the match. When equal to
+    // bobOrderNote.amount the match fully consumed bob's order; otherwise the
+    // (bobOrderNote.amount - bobRealOutAmount) remainder is refunded via
+    // bob's change note.
+    bobRealOutAmount: bigint,
     bobFeeAmount: bigint,
     bobPublicKey: [Fr, Fr],
     bobSignature: string,
