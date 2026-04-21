@@ -240,11 +240,19 @@ export async function generateProMarketPartialOrderSwapProof(
         bob_partial_in_note_footer: bn_to_0xhex(bobPartialInNoteFooter),
 
         bob_left_over_order_note: bn_to_0xhex(bobLeftOverOrderNoteCommitment),
-        bob_left_over_order_rho: bn_to_0xhex(leftOverOrderEnabled ? param.bobMessage.bobLeftOverOrderNote.rho : 0n),
-        bob_left_over_order_note_footer: bn_to_0xhex(leftOverOrderEnabled ? bobLeftOverOrderNoteFooter : 0n),
+        // Footers and rhos must ALWAYS be the real deposit-time values — the
+        // circuit rebuilds bob's 10014 signature over these and verifies
+        // against the signature bob minted at retail deposit. Zeroing them on
+        // a 100 %-fill (the prior code path) would no longer match bob's
+        // committed signature → "Cannot satisfy constraint" on v_bob. The
+        // circuit still gates leftover-note minting on
+        // `bob_left_over_order_note != 0`, so passing real values here is
+        // safe when no leftover is produced.
+        bob_left_over_order_rho: bn_to_0xhex(param.bobMessage.bobLeftOverOrderNote.rho),
+        bob_left_over_order_note_footer: bn_to_0xhex(bobLeftOverOrderNoteFooter),
 
-        bob_left_over_in_note_footer: bn_to_0xhex(leftOverOrderEnabled ? bobLeftOverInNoteFooter : 0n),
-        bob_left_over_in_rho: bn_to_0xhex(leftOverOrderEnabled ? param.bobMessage.bobLeftOverInNote.rho : 0n),
+        bob_left_over_in_note_footer: bn_to_0xhex(bobLeftOverInNoteFooter),
+        bob_left_over_in_rho: bn_to_0xhex(param.bobMessage.bobLeftOverInNote.rho),
 
         bob_pub_key: [bobPubKey[0].toString(), bobPubKey[1].toString()],
         bob_signature: uint8ArrayToNumberArray(hexStringToSignature(param.bobMessage.bobSignature)),
