@@ -3,11 +3,14 @@ import {
     DarkSwapBobMarketPartialOrderMessage,
     DarkSwapBobPartialOrderMessage,
     DarkSwapMarketMessage,
+    DarkSwapMarketPartialLeftOverOrderMessage,
     DarkSwapMarketPartialOrderMessage,
     DarkSwapMessage,
     DarkSwapPartialOrderMessage,
 } from "../types";
 import { Fr } from "../aztec/fields/fields";
+import { calcNullifier } from "../proof/noteService";
+import { hexlify32 } from "./util";
 
 export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
     return JSON.stringify({
@@ -471,5 +474,132 @@ export function deserializeDarkSwapMarketPartialOrderMessage(serializedMessage: 
         mcPublicKey: deserializePublicKey(message.mcPublicKey),
         mcSignature: message.mcSignature,
         mcBobOutInSwapPrice: BigInt(message.mcBobOutInSwapPrice),
+    };
+}
+
+export function serializeDarkSwapMarketPartialLeftOverOrderMessage(swapMessage: DarkSwapMarketPartialLeftOverOrderMessage): string {
+    return JSON.stringify({
+        bobOutNote: {
+            address: swapMessage.bobOutNote.address,
+            rho: swapMessage.bobOutNote.rho.toString(),
+            amount: swapMessage.bobOutNote.amount.toString(),
+            asset: swapMessage.bobOutNote.asset,
+            note: swapMessage.bobOutNote.note.toString(),
+            feeRatio: swapMessage.bobOutNote.feeRatio.toString(),
+        },
+        bobOutNullifier: swapMessage.bobOutNullifier,
+        bobLeftOverOrderNote: {
+            address: swapMessage.bobLeftOverOrderNote.address,
+            rho: swapMessage.bobLeftOverOrderNote.rho.toString(),
+            asset: swapMessage.bobLeftOverOrderNote.asset,
+        },
+        bobLeftOverOrderNoteFooter: swapMessage.bobLeftOverOrderNoteFooter.toString(),
+        bobLeftOverOrderNullifier: swapMessage.bobLeftOverOrderNullifier,
+        bobLeftOverInNote: {
+            address: swapMessage.bobLeftOverInNote.address,
+            rho: swapMessage.bobLeftOverInNote.rho.toString(),
+            asset: swapMessage.bobLeftOverInNote.asset,
+        },
+        bobLeftOverInNoteFooter: swapMessage.bobLeftOverInNoteFooter.toString(),
+        bobPartialInNote: {
+            address: swapMessage.bobPartialInNote.address,
+            rho: swapMessage.bobPartialInNote.rho.toString(),
+            asset: swapMessage.bobPartialInNote.asset,
+        },
+        bobPartialInNoteFooter: swapMessage.bobPartialInNoteFooter.toString(),
+        bobInAsset: swapMessage.bobInAsset,
+        bobMinOutAmount: swapMessage.bobMinOutAmount.toString(),
+        bobInAssetDecimal: swapMessage.bobInAssetDecimal.toString(),
+        bobOutAssetDecimal: swapMessage.bobOutAssetDecimal.toString(),
+        bobMinOutInSwapPrice: swapMessage.bobMinOutInSwapPrice.toString(),
+        bobPartialOutAmount: swapMessage.bobPartialOutAmount.toString(),
+        bobLeftOverInAmount: swapMessage.bobLeftOverInAmount.toString(),
+        bobFeeAmount: swapMessage.bobFeeAmount.toString(),
+        bobPublicKey: [swapMessage.bobPublicKey[0].toString(), swapMessage.bobPublicKey[1].toString()],
+        bobSignature: swapMessage.bobSignature,
+        mcWalletAddress: swapMessage.mcWalletAddress,
+        mcPublicKey: [swapMessage.mcPublicKey[0].toString(), swapMessage.mcPublicKey[1].toString()],
+        mcSignature: swapMessage.mcSignature,
+        mcBobOutInSwapPrice: swapMessage.mcBobOutInSwapPrice.toString(),
+    });
+}
+
+export function deserializeDarkSwapMarketPartialLeftOverOrderMessage(serializedMessage: string): DarkSwapMarketPartialLeftOverOrderMessage {
+    const message = JSON.parse(serializedMessage);
+    return {
+        bobOutNote: {
+            address: message.bobOutNote.address,
+            rho: BigInt(message.bobOutNote.rho),
+            amount: BigInt(message.bobOutNote.amount),
+            asset: message.bobOutNote.asset,
+            note: BigInt(message.bobOutNote.note),
+            feeRatio: BigInt(message.bobOutNote.feeRatio),
+        },
+        bobOutNullifier: message.bobOutNullifier,
+        bobLeftOverOrderNote: {
+            address: message.bobLeftOverOrderNote.address,
+            rho: BigInt(message.bobLeftOverOrderNote.rho),
+            asset: message.bobLeftOverOrderNote.asset,
+        },
+        bobLeftOverOrderNoteFooter: BigInt(message.bobLeftOverOrderNoteFooter),
+        bobLeftOverOrderNullifier: message.bobLeftOverOrderNullifier,
+        bobLeftOverInNote: {
+            address: message.bobLeftOverInNote.address,
+            rho: BigInt(message.bobLeftOverInNote.rho),
+            asset: message.bobLeftOverInNote.asset,
+        },
+        bobLeftOverInNoteFooter: BigInt(message.bobLeftOverInNoteFooter),
+        bobPartialInNote: {
+            address: message.bobPartialInNote.address,
+            rho: BigInt(message.bobPartialInNote.rho),
+            asset: message.bobPartialInNote.asset,
+        },
+        bobPartialInNoteFooter: BigInt(message.bobPartialInNoteFooter),
+        bobInAsset: message.bobInAsset,
+        bobMinOutAmount: BigInt(message.bobMinOutAmount),
+        bobInAssetDecimal: BigInt(message.bobInAssetDecimal),
+        bobOutAssetDecimal: BigInt(message.bobOutAssetDecimal),
+        bobMinOutInSwapPrice: BigInt(message.bobMinOutInSwapPrice),
+        bobPartialOutAmount: BigInt(message.bobPartialOutAmount),
+        bobLeftOverInAmount: BigInt(message.bobLeftOverInAmount),
+        bobFeeAmount: BigInt(message.bobFeeAmount),
+        bobPublicKey: deserializePublicKey(message.bobPublicKey),
+        bobSignature: message.bobSignature,
+        mcWalletAddress: message.mcWalletAddress,
+        mcPublicKey: deserializePublicKey(message.mcPublicKey),
+        mcSignature: message.mcSignature,
+        mcBobOutInSwapPrice: BigInt(message.mcBobOutInSwapPrice),
+    };
+}
+
+/**
+ * Caller-side helper: given a parent market-partial order's swap message,
+ * derive the on-chain-note-aware bits a follow-up leftover child order
+ * needs. The agent uses these to build the child's booknode order row
+ * after a partial-market settlement leaves `leftOverOrderNote` active.
+ *
+ * Amount arithmetic (child amountOut = parent amountOut − finalAmountOut,
+ * child amountIn derived from worst-price ratio) stays with the caller
+ * since it only sees the booknode order row, not the swap message.
+ */
+export type MarketPartialLeftOverChildParams = {
+    parentOrderAmount: bigint;
+    leftOverOrderNullifier: string;
+    leftOverOrderAsset: string;
+    leftOverInAsset: string;
+};
+
+export function deriveMarketPartialLeftOverChildParams(
+    parentSwapMessage: DarkSwapBobMarketPartialOrderMessage,
+): MarketPartialLeftOverChildParams {
+    const nullifier = calcNullifier(
+        parentSwapMessage.leftOverOrderNote.rho,
+        parentSwapMessage.publicKey,
+    );
+    return {
+        parentOrderAmount: parentSwapMessage.orderNote.amount,
+        leftOverOrderNullifier: hexlify32(nullifier),
+        leftOverOrderAsset: parentSwapMessage.leftOverOrderNote.asset,
+        leftOverInAsset: parentSwapMessage.leftOverInNote.asset,
     };
 }
