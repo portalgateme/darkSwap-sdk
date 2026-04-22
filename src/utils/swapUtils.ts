@@ -9,7 +9,7 @@ import {
     DarkSwapPartialOrderMessage,
 } from "../types";
 import { Fr } from "../aztec/fields/fields";
-import { calcNullifier } from "../proof/noteService";
+import { calcNullifier, rebuildOrderNote } from "../proof/noteService";
 import { hexlify32 } from "./util";
 
 export function serializeDarkSwapMessage(swapMessage: DarkSwapMessage): string {
@@ -602,4 +602,91 @@ export function deriveMarketPartialLeftOverChildParams(
         leftOverOrderAsset: parentSwapMessage.leftOverOrderNote.asset,
         leftOverInAsset: parentSwapMessage.leftOverInNote.asset,
     };
+}
+
+/**
+ * Reshape a parent `DarkSwapBobMarketPartialOrderMessage` into the
+ * `DarkSwapBobMarketMessage` shape that represents the leftover child
+ * order as a plain market order for presentation/consumer use.
+ *
+ * Motivation: after a stage-1 partial settlement, the booknode stores a
+ * market-partial-shaped swapMessage on the leftover child (the parent's
+ * signed bundle, reused verbatim so stage-2 MC signing still works). But
+ * downstream consumers that only need cancel / finalize semantics on the
+ * child (e.g. the retail dapp) don't want to understand the market-partial
+ * variant — they already handle plain market orders. This helper gives
+ * them an equivalent market-shaped view:
+ *   - `orderNote` is rebuilt as the leftover ORDER note commitment
+ *     (DOMAIN_ORDER_NOTE + feeRatio, via `rebuildOrderNote`), amount
+ *     = parent.orderNote.amount − parentConsumedAmount.
+ *   - `orderNullifier` is derived from the leftover's rho + pubKey.
+ *   - `inPartialNote` becomes the parent's `leftOverInNote` — this is the
+ *     partial template stage-2 actually uses for Bob's in-note, so a
+ *     downstream `rebuildNote(inPartialNote, finalAmountIn − fee, pubKey)`
+ *     reproduces the on-chain in-note commitment.
+ *   - `minInAmount` is set to 0n as a placeholder; cancel / finalize
+ *     paths don't read this field.
+ *   - `signature` carries the parent's signature verbatim for shape
+ *     fidelity; it is NOT a valid signature against the market-shape
+ *     payload, but cancel / finalize generate fresh signatures and do
+ *     not validate this field.
+ *
+ * This helper is strictly for off-chain presentation. It must NOT be
+ * used to build inputs to the stage-2 circuit or the stage-2 MC signing
+ * path — those still require the original market-partial message.
+ */
+export function toLeftOverChildBobMarketMessage(
+    parentSwapMessage: DarkSwapBobMarketPartialOrderMessage,
+    parentConsumedAmount: bigint,
+): DarkSwapBobMarketMessage {
+    const leftOverAmount = parentSwapMessage.orderNote.amount - parentConsumedAmount;
+    const leftOverOrderNote = rebuildOrderNote(
+        {
+            address: parentSwapMessage.leftOverOrderNote.address,
+            rho: parentSwapMessage.leftOverOrderNote.rho,
+            asset: parentSwapMessage.orderNote.asset,
+        },
+        leftOverAmount,
+        parentSwapMessage.orderNote.feeRatio,
+        parentSwapMessage.publicKey,
+    );
+    const orderNullifier = hexlify32(
+        calcNullifier(parentSwapMessage.leftOverOrderNote.rho, parentSwapMessage.publicKey),
+    );
+
+    return {
+        address: parentSwapMessage.address,
+        orderNote: {
+            address: leftOverOrderNote.address,
+            rho: leftOverOrderNote.rho,
+            amount: leftOverOrderNote.amount,
+            asset: leftOverOrderNote.asset,
+            note: leftOverOrderNote.note,
+            feeRatio: leftOverOrderNote.feeRatio,
+        },
+        orderNullifier,
+        inPartialNote: {
+            address: parentSwapMessage.leftOverInNote.address,
+            rho: parentSwapMessage.leftOverInNote.rho,
+            asset: parentSwapMessage.leftOverInNote.asset,
+        },
+        minInAmount: 0n,
+        publicKey: parentSwapMessage.publicKey,
+        signature: parentSwapMessage.signature,
+        version: parentSwapMessage.version,
+    };
+}
+
+/**
+ * String-in / string-out convenience wrapper around
+ * `toLeftOverChildBobMarketMessage`, for callers that store swap messages
+ * as serialized JSON in a database (e.g. the agent's order row).
+ */
+export function buildLeftOverChildBobMarketMessageString(
+    parentSerializedMessage: string,
+    parentConsumedAmount: bigint,
+): string {
+    const parent = deserializeDarkSwapBobMarketPartialOrderMessage(parentSerializedMessage);
+    const child = toLeftOverChildBobMarketMessage(parent, parentConsumedAmount);
+    return serializeDarkSwapBobMarketMessage(child);
 }
