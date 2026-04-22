@@ -6,7 +6,7 @@ import { mimc_bn254 } from "../../../utils/mimc";
 import { hexStringToSignature, uint8ArrayToNumberArray } from "../../../utils/proofUtils";
 import { generateProof, signMessage } from "../../baseProofService";
 import { generateKeyPair } from "../../keyService";
-import { calcNullifier, EMPTY_NOTE, getNoteFooter, rebuildNote } from "../../noteService";
+import { calcNullifier, getNoteFooter, rebuildNote } from "../../noteService";
 
 type ProPartialOrderSwapProofInput = {
     merkle_root: string,
@@ -143,9 +143,20 @@ export async function generateProPartialOrderSwapProof(param: ProPartialOrderSwa
     // pre-committed a rho at deposit time and shared it through
     // bobMessage.bobChangeNote; we rebuild the commitment here with the
     // deposit asset and the realised change amount.
+    //
+    // Full-fill (bobChangeAmount === 0n): the note commitment is zeroed out
+    // (no on-chain note minted), but the FOOTER must still be derived from
+    // the real rho + pubKey because it's part of bob's domain-10013
+    // signature. The pro_partial_order_swap circuit's else branch does not
+    // constrain footer to 0 so that m_bob verifies against the signed
+    // footer.
     const bobChangeAmount = param.bobMessage.bobOrderNote.amount - param.bobMessage.bobRealOutAmount;
     const bobChangeNote: any = bobChangeAmount === 0n
-        ? { ...EMPTY_NOTE, footer: EMPTY_FOOTER }
+        ? {
+            note: 0n,
+            rho: param.bobMessage.bobChangeNote.rho,
+            footer: getNoteFooter(param.bobMessage.bobChangeNote.rho, bobPubKey),
+        }
         : (() => {
             const rebuilt = rebuildNote(param.bobMessage.bobChangeNote, bobChangeAmount, bobPubKey);
             return { note: rebuilt.note, rho: rebuilt.rho, footer: rebuilt.footer };
