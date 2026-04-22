@@ -47,7 +47,11 @@ describe('ProPartialOrderSwapService', () => {
     return { aliceWallet, aliceSignature, aliceNoteCryptoContext, aliceDarkSwap, orderNote };
   }
 
-  async function setupBobPartialOrder(bobDepositAmount: bigint) {
+  // bobMinOutAmount defaults to 1n ("accept any non-zero fill"). The dapp UI's
+  // Limit / Stop Limit / Take Profit forms now also pass minOutAmount === the
+  // full deposit when the user leaves Minimum Fill at 100%; pass that value
+  // explicitly to exercise the equality case the circuit added a gate for.
+  async function setupBobPartialOrder(bobDepositAmount: bigint, bobMinOutAmount: bigint = 1n) {
     const bobWallet = getBobWallet();
     const bobSignature = await getBobSignature();
     const bobDarkSwap = getDarkSwapForBob();
@@ -60,7 +64,7 @@ describe('ProPartialOrderSwapService', () => {
       asset,
       bobDepositAmount,
       asset,
-      1n, // bobMinOutAmount — accept any non-zero fill
+      bobMinOutAmount,
       bobInAssetDecimal,
       bobOutAssetDecimal,
       bobOutInSwapPrice,
@@ -204,6 +208,75 @@ describe('ProPartialOrderSwapService', () => {
 
     // Probe the commitment that WOULD have been minted had the fill been
     // partial — must be UNKNOWN (never created) on full fill.
+    const hypotheticalBobChange = rebuildNote(
+      bobSwapMessage.changeNote,
+      1n,
+      bobSwapMessage.publicKey,
+    );
+    assert.equal(
+      await getNoteOnChainStatusByPublicKey(bobDarkSwap, hypotheticalBobChange, bobSwapMessage.publicKey),
+      NoteOnChainStatus.UNKNOWN,
+    );
+  }, 120000);
+
+  // The dapp UI now ships partial orders with bobMinOutAmount === bob's full
+  // deposit when the user leaves Minimum Fill at 100% (Limit / Stop Limit /
+  // Take Profit forms always route through the partial-order proof). This
+  // pins down that the matcher can fully fill such an order end-to-end:
+  // create-partial verifies (gated equality case in the deposit circuit) AND
+  // pro_partial_order_swap settles cleanly with bob's change-amount = 0.
+  it('100% min fill: bob orders with minOut === deposit and is fully matched', async () => {
+    const aliceOrderAmount = 700_000_000_000_000_000n;
+    const aliceDepositAmount = 2_000_000_000_000_000_000n;
+    const bobDepositAmount = 400_000_000_000_000_000n;
+
+    const { aliceWallet, aliceSignature, aliceNoteCryptoContext, aliceDarkSwap, orderNote: aliceOrderNote } =
+      await setupAlicePartialOrder(aliceOrderAmount, aliceDepositAmount);
+    // bobMinOutAmount === bobDepositAmount: the equality case the create-
+    // partial circuit's gated assert_gt now accepts.
+    const { bobWallet, bobSignature, bobDarkSwap, bobOrderNote, bobSwapMessage } =
+      await setupBobPartialOrder(bobDepositAmount, bobDepositAmount);
+
+    const bobRealOutAmount = bobDepositAmount;
+    const bobInAmount = bobDepositAmount;
+
+    const mcAddress = await getMcAddress();
+    const mcSignature = await getMcSignature();
+    const swapMessage = await ProPartialOrderSwapService.prepareProPartialOrderMessageForMc(
+      bobSwapMessage,
+      bobInAmount,
+      bobRealOutAmount,
+      mcAddress,
+      mcSignature,
+    );
+
+    const proSwapService = new ProPartialOrderSwapService(aliceDarkSwap);
+    const { context: aliceCtx, swapInNote: aliceInNote, changeNote: aliceChangeNote } = await proSwapService.prepare(
+      aliceWallet.address,
+      aliceOrderNote,
+      bobWallet.address,
+      swapMessage,
+      aliceSignature,
+      aliceNoteCryptoContext,
+    );
+    const txHash = await proSwapService.execute(aliceCtx);
+    assert.ok(txHash, '100% min-fill order must settle on-chain');
+
+    assert.equal(await getNoteOnChainStatusBySignature(aliceDarkSwap, aliceInNote, aliceSignature), NoteOnChainStatus.ACTIVE);
+    assert.equal(await getNoteOnChainStatusBySignature(aliceDarkSwap, aliceChangeNote, aliceSignature), NoteOnChainStatus.ACTIVE);
+    assert.equal(await getNoteOnChainStatusBySignature(aliceDarkSwap, aliceOrderNote, aliceSignature), NoteOnChainStatus.SPENT);
+
+    assert.equal(await getNoteOnChainStatusBySignature(bobDarkSwap, bobOrderNote, bobSignature), NoteOnChainStatus.SPENT);
+
+    const bobInNote = rebuildNote(
+      swapMessage.bobInPartialNote,
+      swapMessage.bobInAmount - swapMessage.bobFeeAmount,
+      swapMessage.bobPublicKey,
+    );
+    assert.equal(await getNoteOnChainStatusByPublicKey(bobDarkSwap, bobInNote, swapMessage.bobPublicKey), NoteOnChainStatus.ACTIVE);
+
+    // No change note minted on full fill: the commitment derived from bob's
+    // change rho must be UNKNOWN (never landed in the merkle tree).
     const hypotheticalBobChange = rebuildNote(
       bobSwapMessage.changeNote,
       1n,
