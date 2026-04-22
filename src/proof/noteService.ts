@@ -61,6 +61,41 @@ export function rebuildNote(
   }
 }
 
+// Order-note variant of `rebuildNote`. Use this when reconstructing an
+// order-note commitment (e.g. the market-partial leftOverOrderNote) from a
+// partial template + amount + feeRatio. The on-chain order-note commitment
+// uses DOMAIN_ORDER_NOTE and folds feeRatio into the hash — passing an
+// order note through `rebuildNote` produces a plain-note commitment that
+// will never match the on-chain entry.
+export function rebuildOrderNote(
+  partialNote: DarkSwapPartialNote,
+  amount: bigint,
+  feeRatio: bigint,
+  fuzkPubKey: [Fr, Fr]
+): DarkSwapOrderNote & { footer: bigint } {
+  const footer = getNoteFooter(partialNote.rho, fuzkPubKey)
+
+  const addressMod = encodeAddress(partialNote.address)
+  const assetMod = encodeAddress(partialNote.asset)
+  const note = mimc_bn254([
+    DOMAIN_ORDER_NOTE,
+    addressMod,
+    assetMod,
+    amount,
+    feeRatio,
+    footer,
+  ])
+  return {
+    address: partialNote.address,
+    rho: partialNote.rho,
+    note,
+    asset: partialNote.asset,
+    amount,
+    feeRatio,
+    footer,
+  }
+}
+
 export function createNote(
   address: string,
   asset: string,
