@@ -33,9 +33,7 @@ import IERC20Abi from "../../../src/abis/IERC20.json";
 //   1. Seeds bob with the correct deposit asset (MockUSDC transferred
 //      from alice when bob deposits USDC).
 //   2. Runs RetailDepositCreatePartialOrderService — bob's set-and-go
-//      order, 100% min fill (or 50% for the S4/S8 partial-deposit cases
-//      where 100% min fill would fail the circuit's bob_real_out ≥
-//      bob_min_out_amount gate).
+//      order, 100% min fill.
 //   3. Runs DepositService + ProCreateOrderService for alice's pro limit.
 //   4. Runs ProPartialOrderSwapService with the matcher-derived
 //      bobInAmount / bobRealOutAmount.
@@ -58,7 +56,7 @@ interface Case {
     bobOutAssetDecimal: bigint;       // 10^decimals of deposit
     bobInAssetDecimal: bigint;        // 10^decimals of receive
     bobOutInSwapPrice: bigint;        // retail's worst price encoded
-    bobMinOutAmount: bigint;          // 100% min fill = bobOutAmount; for S4/S8 < 100%
+    bobMinOutAmount: bigint;          // 100% min fill = bobOutAmount
     // Alice's pro limit (deposit asset is bob's receive asset).
     aliceOutAsset: string;            // alice deposits = bob's in-asset
     aliceOutAmount: bigint;           // alice deposit amount
@@ -167,21 +165,20 @@ const cases: Case[] = [
         expectedAliceChange: 25_000_000n,
         expectedBobChange: 0n,
     },
-    // S4: retail BUY, pro-first → matched at pro's 2000 (retail price-improved).
-    //     bobInAmount = 0.0842... ETH (full), bobRealOut = 168.492504 USDC.
-    //     Bob USDC change = 200 - 168.492504 = 31.507496.
-    //     100% min fill would fail circuit's bob_real_out ≥ bob_min_out gate
-    //     (168M < 200M). Use 50% min fill so on-chain settlement passes.
+    // S4: retail BUY, pro-first → matched at pro's 2000. At 100% min fill
+    //     the matcher consumes retail's full 200 USDC at 2000, so retail
+    //     receives 0.1 ETH (price-improved from the 0.0842... asked at the
+    //     2373.99 worst rate). Alice ETH change = 0.2 - 0.1 = 0.1 ETH.
     {
-        name: "S4 retail BUY full match, pro first (matched at 2000, retail price-improved)",
+        name: "S4 retail BUY full match, pro first (matched at 2000, full retail consume)",
         ...retailBuyShape,
-        bobMinOutAmount: RETAIL_BUY_OUT / 2n, // 50% min fill = 100 USDC
+        bobMinOutAmount: RETAIL_BUY_OUT,
         aliceOutAmount: ALICE_BUY_BIG_OUT,
         aliceInAmount: ALICE_BUY_BIG_IN,
-        bobInAmount: 84_246_252_402_345_080n,
-        bobRealOutAmount: 168_492_504n,
-        expectedAliceChange: 115_753_747_597_654_920n,
-        expectedBobChange: 31_507_496n,
+        bobInAmount: 100_000_000_000_000_000n,    // 0.1 ETH
+        bobRealOutAmount: 200_000_000n,            // 200 USDC (full)
+        expectedAliceChange: 100_000_000_000_000_000n, // 0.1 ETH
+        expectedBobChange: 0n,
     },
     // S5: retail SELL edge, retail-first. Pro BUY target ETH = retail supply.
     //     Matched at retail's 2405.22286. Alice USDC change = 0.947771.
@@ -223,19 +220,21 @@ const cases: Case[] = [
         expectedAliceChange: 15_753_747_597_654_920n,
         expectedBobChange: 0n,
     },
-    // S8: retail BUY edge, pro-first. Retail price-improved (pays < 200 USDC)
-    //     AND pro has ETH change (pro's 0.1 ETH partial-consumed). Uses
-    //     50% min fill for the circuit to accept partial deposit.
+    // S8: retail BUY edge, pro-first. Both sides exactly clear at 2000:
+    //     retail's 200 USDC budget = pro's 0.1 ETH * 2000. Retail receive-
+    //     side price improvement (0.1 ETH vs. 0.0842... ask); pro and
+    //     retail both finish with zero change. Exercises the EMPTY_NOTE
+    //     path for aliceChangeNote AND UNKNOWN path for bob change.
     {
-        name: "S8 retail BUY edge, pro first (retail price-improved + pro ETH change)",
+        name: "S8 retail BUY edge, pro first (both sides exactly clear)",
         ...retailBuyShape,
-        bobMinOutAmount: RETAIL_BUY_OUT / 2n,
+        bobMinOutAmount: RETAIL_BUY_OUT,
         aliceOutAmount: ALICE_BUY_EDGE_OUT,
         aliceInAmount: ALICE_BUY_EDGE_IN,
-        bobInAmount: 84_246_252_402_345_080n,
-        bobRealOutAmount: 168_492_504n,
-        expectedAliceChange: 15_753_747_597_654_920n,
-        expectedBobChange: 31_507_496n,
+        bobInAmount: 100_000_000_000_000_000n,    // 0.1 ETH (full pro supply)
+        bobRealOutAmount: 200_000_000n,            // 200 USDC (full retail budget)
+        expectedAliceChange: 0n,
+        expectedBobChange: 0n,
     },
 ];
 
