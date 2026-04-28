@@ -38,23 +38,23 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0x5D130d32A962c1F86A9378d07b60b46De86e6855',
     darkSwapPartialAssetManager: '0x0', //FIXME
   },
-  [ChainId.SEPOLIA]: {
-    priceOracle: '0x4Fe44a9aC8Ef059Be2dB97f9e3bcA32Ab698C2f2',
+  [ChainId.BASE_SEPOLIA]: {
+    priceOracle: '0x0',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-    nativeWrapper: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
-    merkleTreeOperator: '0x0', //FIXME
-    darkSwapAssetManager: '0x0', //FIXME
-    darkSwapFeeAssetManager: '0x0', //FIXME
-    darkSwapPartialAssetManager: '0x0', //FIXME
+    nativeWrapper: '0x0',
+    merkleTreeOperator: '0x4e171C703646A85ba170E283e08285BA876F000e',
+    darkSwapAssetManager: '0x5810E976F7D5E20B53ae15DFf7c22513669322d6',
+    darkSwapFeeAssetManager: '0x516D30Bbf00BcB6E6863231A6749D93f7fB667be',
+    darkSwapPartialAssetManager: '0x98E7683209866f3E4BB2c9071252aC237F57E165',
   },
   [ChainId.HORIZEN_TESTNET]: {
-    priceOracle: '0x54c375f28ce4B0c2B986D6256E4Bc75d242A8793',
+    priceOracle: '0x0',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-    nativeWrapper: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
-    merkleTreeOperator: '0x8Cd4061C8b3743810B811E1F4A0B597D79225f4E',
-    darkSwapAssetManager: '0xEBeD6c7C2189bf8ad6687D3A4cf4b83fB4D1a3D2',
-    darkSwapFeeAssetManager: '0x8CF86856Bd7dE95b4ba33DCae4cd5Ec02542Bf5b',
-    darkSwapPartialAssetManager: '0x0', //FIXME
+    nativeWrapper: '0x0',
+    merkleTreeOperator: '0xb7c8838c28266879a93B448ce0174F0d2511D751',
+    darkSwapAssetManager: '0x97B34ca30B8E3C6F4bfE953fa80549DD1FbeB659',
+    darkSwapFeeAssetManager: '0x382e514E9863009e849c80A1973A2C35eDF51c75',
+    darkSwapPartialAssetManager: '0x00981a6AF0A36C98069C8fa844F061A57365cd02', //FIXME
   },
   [ChainId.HARDHAT]: {
     priceOracle: '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8',
