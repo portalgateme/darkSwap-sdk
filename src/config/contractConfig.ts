@@ -38,6 +38,15 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     darkSwapFeeAssetManager: '0x5D130d32A962c1F86A9378d07b60b46De86e6855',
     darkSwapPartialAssetManager: '0x0', //FIXME
   },
+  [ChainId.SEPOLIA]: {
+    priceOracle: '0x4Fe44a9aC8Ef059Be2dB97f9e3bcA32Ab698C2f2',
+    ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+    nativeWrapper: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
+    merkleTreeOperator: '0x1A1F1F47Ee71aE3185A5eAd83482B72A7EA02bCF',
+    darkSwapAssetManager: '0x774d8f7DBd5C46c9eC84b37c1FC135C29E12a4cb',
+    darkSwapFeeAssetManager: '0x498566304aE17B5E9C9281d21D7910c5Eb942170',
+    darkSwapPartialAssetManager: '0x0E7118dA523924852546d6a5518e7aCc05aF279F',
+  },
   [ChainId.BASE_SEPOLIA]: {
     priceOracle: '0x0',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
