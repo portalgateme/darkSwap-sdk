@@ -59,7 +59,7 @@ export async function generateRetailSwapMessage(
     const message = bn_to_hex(mimc_bn254([
         BigInt(PROOF_DOMAIN.RETAIL_CREATE_ORDER),
         addressMod,
-        orderNoteNullifier,
+        orderNote.note,
         orderNote.feeRatio,
         swapInNote.note,
     ]));

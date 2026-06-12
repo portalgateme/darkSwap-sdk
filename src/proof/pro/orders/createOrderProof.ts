@@ -7,7 +7,7 @@ import { mimc_bn254 } from "../../../utils/mimc";
 import { uint8ArrayToNumberArray } from "../../../utils/proofUtils";
 import { generateProof, signMessage } from "../../baseProofService";
 import { generateKeyPair } from "../../keyService";
-import { calcNullifier, getNoteFooter } from "../../noteService";
+import { calcNullifier, getNoteFooter, validateNoteWithPubKey, validateOrderNoteWithPubKey } from "../../noteService";
 
 type ProCreateOrderProofInput = BaseProofInput & {
     merkle_root: string,
@@ -74,17 +74,62 @@ export async function generateProCreateOrderProof(param: ProCreateOrderProofPara
         throw new DarkSwapProofError("Invalid order amount");
     }
 
+    if (param.oldBalanceNote.asset.toLowerCase() !== param.orderNote.asset.toLowerCase()) {
+        throw new DarkSwapProofError("Invalid old balance asset: must equal orderNote.asset");
+    }
+    if (param.newBalanceNote.amount !== 0n && param.newBalanceNote.asset.toLowerCase() !== param.orderNote.asset.toLowerCase()) {
+        throw new DarkSwapProofError("Invalid new balance asset: must equal orderNote.asset when change_amount != 0");
+    }
+
+    if (param.oldBalanceNote.address.toLowerCase() !== param.address.toLowerCase()) {
+        throw new DarkSwapProofError("Invalid old balance address");
+    }
+    if (param.orderNote.address.toLowerCase() !== param.address.toLowerCase()) {
+        throw new DarkSwapProofError("Invalid order note address");
+    }
+    if (param.newBalanceNote.amount !== 0n && param.newBalanceNote.address.toLowerCase() !== param.address.toLowerCase()) {
+        throw new DarkSwapProofError("Invalid new balance address");
+    }
+
+    if (param.newBalanceNote.amount === 0n) {
+        if (param.newBalanceNote.note !== 0n) {
+            throw new DarkSwapProofError("Invalid newBalanceNote.note: must be 0 when newBalanceNote.amount == 0");
+        }
+    } else {
+        if (param.newBalanceNote.amount <= 0n) {
+            throw new DarkSwapProofError("Invalid newBalanceNote.amount: must be > 0 when non-zero");
+        }
+    }
+
+    if (param.merkleIndex.length !== 32 || param.merklePath.length !== 32) {
+        throw new DarkSwapProofError("Invalid merkle proof length (expected 32)");
+    }
+
     const feeAmount = calcFeeAmount(param.inAmount, param.orderNote.feeRatio);
+    if (feeAmount !== 0n && param.inAmount <= feeAmount) {
+        throw new DarkSwapProofError("Invalid fee amount: inAmount must be > feeAmount");
+    }
 
     const [[fuzkPubKeyX, fuzkPubKeyY], fuzkPriKey] = await generateKeyPair(param.signedMessage);
 
-    let newBalanceFooter = EMPTY_FOOTER;
-    if (param.newBalanceNote.amount != 0n) {
-        newBalanceFooter = getNoteFooter(param.newBalanceNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
+    const pubKey: any = [fuzkPubKeyX, fuzkPubKeyY];
+    if (!validateNoteWithPubKey(param.oldBalanceNote, pubKey)) {
+        throw new DarkSwapProofError("Invalid oldBalanceNote commitment");
+    }
+    if (param.newBalanceNote.amount !== 0n && !validateNoteWithPubKey(param.newBalanceNote, pubKey)) {
+        throw new DarkSwapProofError("Invalid newBalanceNote commitment");
+    }
+    if (!validateOrderNoteWithPubKey(param.orderNote, pubKey)) {
+        throw new DarkSwapProofError("Invalid orderNote commitment");
     }
 
-    const oldBalanceNullifier = calcNullifier(param.oldBalanceNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
-    const orderNoteFooter = getNoteFooter(param.orderNote.rho, [fuzkPubKeyX, fuzkPubKeyY]);
+    let newBalanceFooter = EMPTY_FOOTER;
+    if (param.newBalanceNote.amount != 0n) {
+        newBalanceFooter = getNoteFooter(param.newBalanceNote.rho, pubKey);
+    }
+
+    const oldBalanceNullifier = calcNullifier(param.oldBalanceNote.rho, pubKey);
+    const orderNoteFooter = getNoteFooter(param.orderNote.rho, pubKey);
 
     const addressMod = encodeAddress(param.address);
     const message = bn_to_hex(mimc_bn254([

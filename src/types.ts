@@ -19,7 +19,11 @@ export enum PROOF_DOMAIN {
     RETAIL_SWAP = 10010,
     PAIR_JOIN = 10011,
     RETAIL_CREATE_MAKER_ORDER = 10012,
-    MC_MARKET_SWAP = 10100
+    RETAIL_DEPOSIT_CREATE_PARTIAL_ORDER = 10013,
+    RETAIL_DEPOSIT_CREATE_MARKET_PARTIAL_ORDER = 10014,
+    MC_MARKET_SWAP = 10100,
+    MC_PRO_PARTIAL_ORDER_SWAP = 10101,
+    MC_PRO_MARKET_PARTIAL_ORDER_SWAP = 10102
 }
 
 export const EMPTY_NULLIFIER = 0n;
@@ -95,6 +99,120 @@ export type DarkSwapMessage = BaseSwapMessage & {
 export type DarkSwapBobMarketMessage = BaseSwapMessage & {
     inPartialNote: DarkSwapPartialNote,
     minInAmount: bigint,
+}
+
+export type DarkSwapBobPartialOrderMessage = BaseSwapMessage & {
+    inAsset: string,
+    minOutAmount: bigint,
+    inAssetDecimal: bigint,
+    outAssetDecimal: bigint,
+    outInSwapPrice: bigint,
+    inPartialNote: DarkSwapPartialNote,
+    // Pre-committed rho/asset for the (possibly empty) change refund of bob's
+    // deposit when the match is a partial fill. The on-chain deposit circuit
+    // signs the footer derived from `changeNote.rho`; the pro partial-swap
+    // circuit consumes the same rho to commit the change note.
+    changeNote: DarkSwapPartialNote,
+}
+
+
+export type DarkSwapBobMarketPartialOrderMessage = {
+    address: string,
+    orderNote: DarkSwapOrderNote,
+    inAsset: string,
+    minOutAmount: bigint,
+    inAssetDecimal: bigint,
+    outAssetDecimal: bigint,
+    minOutInSwapPrice: bigint,
+    inPartialNote: DarkSwapPartialNote,
+    leftOverOrderNote: DarkSwapPartialNote,
+    leftOverInNote: DarkSwapPartialNote,
+    publicKey: [Fr, Fr],
+    signature: string,
+    version?: number,
+}
+
+export type DarkSwapPartialOrderMessage = {
+    bobOrderNote: DarkSwapOrderNote,
+    bobOrderNullifier: string,
+    bobInAsset: string,
+    bobMinOutAmount: bigint,
+    bobInAssetDecimal: bigint,
+    bobOutAssetDecimal: bigint,
+    bobOutInSwapPrice: bigint,
+    bobInPartialNote: DarkSwapPartialNote,
+    bobChangeNote: DarkSwapPartialNote,
+    bobInAmount: bigint,
+    // Portion of bob's deposit actually consumed by the match. When equal to
+    // bobOrderNote.amount the match fully consumed bob's order; otherwise the
+    // (bobOrderNote.amount - bobRealOutAmount) remainder is refunded via
+    // bob's change note.
+    bobRealOutAmount: bigint,
+    bobFeeAmount: bigint,
+    bobPublicKey: [Fr, Fr],
+    bobSignature: string,
+    mcWalletAddress: string,
+    mcPublicKey: [Fr, Fr],
+    mcSignature: string,
+}
+
+export type DarkSwapMarketPartialOrderMessage = {
+    bobOrderNote: DarkSwapOrderNote,
+    bobInAsset: string,
+    bobMinOutAmount: bigint,
+    bobInAssetDecimal: bigint,
+    bobOutAssetDecimal: bigint,
+    bobMinOutInSwapPrice: bigint,
+
+    bobInPartialNote: DarkSwapPartialNote,
+    bobLeftOverOrderNote: DarkSwapPartialNote,
+    bobLeftOverInNote: DarkSwapPartialNote,
+
+    bobRealOutAmount: bigint,
+    bobInAmount: bigint,
+    bobFeeAmount: bigint,
+
+    bobPublicKey: [Fr, Fr],
+    bobSignature: string,
+
+    mcWalletAddress: string,
+    mcPublicKey: [Fr, Fr],
+    mcSignature: string,
+    mcBobOutInSwapPrice: bigint,
+}
+
+
+export type DarkSwapMarketPartialLeftOverOrderMessage = {
+    bobOutNote: DarkSwapOrderNote,
+    bobOutNullifier: string,
+
+    bobLeftOverOrderNote: DarkSwapPartialNote,
+    bobLeftOverOrderNoteFooter: bigint,
+    bobLeftOverOrderNullifier: string,
+
+    bobLeftOverInNote: DarkSwapPartialNote,
+    bobLeftOverInNoteFooter: bigint,
+
+    bobPartialInNote: DarkSwapPartialNote,
+    bobPartialInNoteFooter: bigint,
+
+    bobInAsset: string,
+    bobMinOutAmount: bigint,
+    bobInAssetDecimal: bigint,
+    bobOutAssetDecimal: bigint,
+    bobMinOutInSwapPrice: bigint,
+
+    bobPartialOutAmount: bigint,
+    bobLeftOverInAmount: bigint,
+    bobFeeAmount: bigint,
+
+    bobPublicKey: [Fr, Fr],
+    bobSignature: string,
+
+    mcWalletAddress: string,
+    mcPublicKey: [Fr, Fr],
+    mcSignature: string,
+    mcBobOutInSwapPrice: bigint,
 }
 
 export type DarkSwapMarketMessage = {
