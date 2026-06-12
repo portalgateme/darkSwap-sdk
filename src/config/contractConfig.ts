@@ -34,9 +34,9 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0x4200000000000000000000000000000000000006',
     merkleTreeOperator: '0x918B4F76CAE5F67A3818D8eD3d0e11D9888684E9',
-    darkSwapAssetManager: '0x43f3Af9133f61b79eD4683Deb201E5FDbA42DBE9',
+    darkSwapAssetManager: '0xD0BC08D0afD821A9afcaA803ae62e7410A613AE5',
     darkSwapFeeAssetManager: '0x5D130d32A962c1F86A9378d07b60b46De86e6855',
-    darkSwapPartialAssetManager: '0x0', //FIXME
+    darkSwapPartialAssetManager: '0xd0F2332797a8c978e9aD4A1A84799702990931f1',
   },
   [ChainId.SEPOLIA]: {
     priceOracle: '0x4Fe44a9aC8Ef059Be2dB97f9e3bcA32Ab698C2f2',
