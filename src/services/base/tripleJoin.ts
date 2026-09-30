@@ -179,6 +179,7 @@ export class TripleJoinService extends BaseContractService {
     const estimatedGas = await contract.join.estimateGas(...joinArgs);
     const gasLimit = refineGasLimit(estimatedGas);
     const tx = await contract.join(...joinArgs, { gasLimit });
+    await tx.wait();
     return tx.hash;
   }
 }
