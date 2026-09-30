@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { createNoteCryptoContext, DarkSwap, deriveKey } from "../../src";
 import IERC20ABI from "../../src/abis/IERC20.json";
 
-const PROVIDER_URL = 'http://localhost:18544';
+const PROVIDER_URL = process.env.SDK_TEST_RPC_URL || 'http://localhost:18544';
 
 const HARDHAT_CA = {
     "mimc254": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
