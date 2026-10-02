@@ -67,6 +67,7 @@ describe('ProPartialOrderSwapProof', () => {
     const bobOrderNote = createOrderNoteExt(bobWallet.address, bobOutAsset, bobOutAmount, bobFeeRatio, bobPubKey);
 
     const bobInPartialNote = createPartialNote(bobWallet.address, bobInAsset);
+    const bobChangeNote = createPartialNote(bobWallet.address, bobOutAsset);
     const bobSwapMessageForPro = await generateRetailPartialOrderMessage(
       bobWallet.address,
       bobOrderNote,
@@ -76,6 +77,7 @@ describe('ProPartialOrderSwapProof', () => {
       bobOutAssetDecimal,
       bobOutInSwapPrice,
       bobInPartialNote,
+      bobChangeNote,
       bobPubKey,
       bobPrivKey,
       1
@@ -86,6 +88,7 @@ describe('ProPartialOrderSwapProof', () => {
       mcWallet.address,
       bobSwapMessageForPro,
       bobInAmount,
+      bobOutAmount,
       bobFeeAmount,
       mcPubKey,
       mcPrivKey
