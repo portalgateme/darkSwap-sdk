@@ -1,4 +1,4 @@
-import { UltraHonkBackend } from "@aztec/bb.js";
+import { Barretenberg, UltraHonkBackend } from "@aztec/bb.js";
 import { Schnorr } from "../aztec/crypto/schnorr";
 import { Fq, Fr } from "../aztec/fields/fields";
 import { Noir } from "@noir-lang/noir_js";
@@ -10,18 +10,19 @@ export async function generateProof(
 ) {
 
     const start_time = new Date().getTime();
-    const backend = new UltraHonkBackend(circuit.bytecode);
+    const api = await Barretenberg.new();
+    const backend = new UltraHonkBackend(circuit.bytecode, api);
 
     const noir = new Noir(circuit);
     try {
         const { witness } = await noir.execute(inputs);
-        const proof = await backend.generateProof(witness, { keccak: true });
+        const proof = await backend.generateProof(witness, { verifierTarget: 'evm' });
         console.log("Proof generated in " + (new Date().getTime() - start_time) + "ms");
 
         return { proof: hexlify(proof.proof), verifyInputs: proof.publicInputs };
     } finally {
         const destroy_start_time = new Date().getTime();
-        await backend.destroy();
+        await api.destroy();
         console.log("Destroyed in " + (new Date().getTime() - destroy_start_time) + "ms");
     }
 }
@@ -29,6 +30,6 @@ export async function generateProof(
 
 export async function signMessage(message: string, fuzkPriKey: Fr) {
     const schnorr = new Schnorr();
-    const signature = await schnorr.constructSignature(Buffer.from(message, "hex").reverse(), Fq.fromBufferReduce(fuzkPriKey.toBuffer()));
+    const signature = await schnorr.constructSignature(Fr.fromBuffer(Buffer.from(message, "hex")), Fq.fromBufferReduce(fuzkPriKey.toBuffer()));
     return signature.toBuffer();
 }

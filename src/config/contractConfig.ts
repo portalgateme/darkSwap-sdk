@@ -70,8 +70,8 @@ export const contractConfig: { [chainId: number]: ContractConfiguartion } = {
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     merkleTreeOperator: '0x0165878A594ca255338adfa4d48449f69242Eb8F',
-    darkSwapAssetManager: '0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9',
-    darkSwapFeeAssetManager: '0x67d269191c92Caf3cD7723F116c85e6E9bf55933',
-    darkSwapPartialAssetManager: '0x998abeb3E57409262aE5b751f60747921B33613E'
+    darkSwapAssetManager: '0x851356ae760d987E095750cCeb3bC6014560891C',
+    darkSwapFeeAssetManager: '0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690',
+    darkSwapPartialAssetManager: '0x4826533B4897376654Bb4d4AD88B7faFD0C98528'
   }
 };
